@@ -76,7 +76,7 @@ export type AnnouncementBlock = {
   messages?: string[]
 }
 
-export type FaqItem = { question: string; answer: string }
+export type FaqItem = { question: string; answer: string; category?: string }
 
 export type FaqBlock = {
   items?: FaqItem[]
