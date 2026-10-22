@@ -6,6 +6,7 @@ import { listRegions } from "@lib/data/regions"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
+import { parseProductFilters } from "@lib/util/product-filters"
 import { getLocalizedAlternates } from "@lib/util/seo"
 
 type Props = {
@@ -55,6 +56,7 @@ export default async function CategoryPage(props: Props) {
   const params = await props.params
   const { sortBy, page } = searchParams
   const optionValueIds = parseOptionValueIds(searchParams)
+  const filters = parseProductFilters(searchParams)
 
   const productCategory = await getCategoryByHandle(params.category)
 
@@ -69,6 +71,7 @@ export default async function CategoryPage(props: Props) {
       page={page}
       countryCode={params.countryCode}
       optionValueIds={optionValueIds}
+      filters={filters}
     />
   )
 }

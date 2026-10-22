@@ -6,17 +6,20 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import PaginatedProducts from "@modules/store/templates/paginated-products"
 import Breadcrumbs from "@modules/common/components/breadcrumbs"
 import { HttpTypes } from "@medusajs/types"
+import { getRegion } from "@lib/data/regions"
+import { ProductFilters } from "@lib/util/product-filters"
 import { OptionValueIds } from "@lib/util/product-option-filters"
 
 const DEFAULT_BLURB_TEMPLATE =
   "Découvrez les créations réunies dans la collection {title}."
 
-export default function CollectionTemplate({
+export default async function CollectionTemplate({
   sortBy,
   collection,
   page,
   countryCode,
   optionValueIds,
+  filters,
   blurbTemplate,
 }: {
   sortBy?: SortOptions
@@ -24,10 +27,12 @@ export default function CollectionTemplate({
   page?: string
   countryCode: string
   optionValueIds?: OptionValueIds
+  filters?: ProductFilters
   blurbTemplate?: string
 }) {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
+  const region = await getRegion(countryCode)
   const blurb = (blurbTemplate || DEFAULT_BLURB_TEMPLATE).replaceAll(
     "{title}",
     collection.title
@@ -55,7 +60,11 @@ export default function CollectionTemplate({
         </p>
       </div>
 
-      <RefinementList sortBy={sort} hideOptionsPicker />
+      <RefinementList
+        sortBy={sort}
+        hideOptionsPicker
+        currencyCode={region?.currency_code}
+      />
 
       <Suspense
         fallback={
@@ -68,6 +77,7 @@ export default function CollectionTemplate({
           collectionId={collection.id}
           countryCode={countryCode}
           optionValueIds={optionValueIds}
+          filters={filters}
         />
       </Suspense>
     </div>

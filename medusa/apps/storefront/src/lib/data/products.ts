@@ -1,6 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
+import { ProductFilters, filterProducts } from "@lib/util/product-filters"
 import { OptionValueIds } from "@lib/util/product-option-filters"
 import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
@@ -128,12 +129,14 @@ export const listProductsWithSort = async ({
   sortBy = "created_at",
   countryCode,
   optionValueIds,
+  filters = {},
 }: {
   page?: number
   queryParams?: ProductListQueryParams
   sortBy?: SortOptions
   countryCode: string
   optionValueIds?: OptionValueIds
+  filters?: ProductFilters
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
@@ -156,11 +159,12 @@ export const listProductsWithSort = async ({
     countryCode,
   })
 
-  const sortedProducts = sortProducts(products, sortBy)
+  const filteredProducts = filterProducts(products, filters)
+  const sortedProducts = sortProducts(filteredProducts, sortBy)
 
   const pageParam = (page - 1) * limit
 
-  const filteredCount = products.length
+  const filteredCount = filteredProducts.length
 
   const nextPage = filteredCount > pageParam + limit ? pageParam + limit : null
 
