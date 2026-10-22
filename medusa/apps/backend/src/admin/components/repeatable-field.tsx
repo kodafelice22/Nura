@@ -1,5 +1,5 @@
 import { Button, IconButton, Label, Text } from "@medusajs/ui"
-import { Plus, Trash } from "@medusajs/icons"
+import { ArrowDownMini, ArrowUpMini, Plus, Trash } from "@medusajs/icons"
 
 type RepeatableFieldProps<T> = {
   label: string
@@ -13,6 +13,8 @@ type RepeatableFieldProps<T> = {
   ) => React.ReactNode
   addLabel?: string
   hint?: string
+  /** Adds move up / move down buttons, for lists where the order matters. */
+  reorderable?: boolean
 }
 
 /** A repeatable list of small objects — pillars, steps, phone numbers, FAQ
@@ -25,12 +27,25 @@ function RepeatableField<T>({
   renderItem,
   addLabel = "Ajouter",
   hint,
+  reorderable = false,
 }: RepeatableFieldProps<T>) {
   const update = (index: number, patch: Partial<T>) =>
     onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)))
 
   const remove = (index: number) =>
     onChange(items.filter((_, i) => i !== index))
+
+  const move = (index: number, direction: -1 | 1) => {
+    const target = index + direction
+
+    if (target < 0 || target >= items.length) {
+      return
+    }
+
+    const next = [...items]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    onChange(next)
+  }
 
   const add = () => onChange([...items, empty])
 
@@ -53,6 +68,30 @@ function RepeatableField<T>({
             <div className="flex-1">
               {renderItem(item, (patch) => update(index, patch), index)}
             </div>
+            {reorderable && (
+              <>
+                <IconButton
+                  type="button"
+                  size="small"
+                  variant="transparent"
+                  disabled={index === 0}
+                  onClick={() => move(index, -1)}
+                  aria-label="Monter"
+                >
+                  <ArrowUpMini />
+                </IconButton>
+                <IconButton
+                  type="button"
+                  size="small"
+                  variant="transparent"
+                  disabled={index === items.length - 1}
+                  onClick={() => move(index, 1)}
+                  aria-label="Descendre"
+                >
+                  <ArrowDownMini />
+                </IconButton>
+              </>
+            )}
             <IconButton
               type="button"
               size="small"

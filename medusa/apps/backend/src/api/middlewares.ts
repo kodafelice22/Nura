@@ -120,6 +120,10 @@ export default defineMiddlewares({
       policies: { resource: "content", operation: "*" },
     },
     {
+      matcher: "/admin/routines*",
+      policies: { resource: "content", operation: "*" },
+    },
+    {
       matcher: "/admin/reviews*",
       policies: { resource: "review", operation: "*" },
     },
