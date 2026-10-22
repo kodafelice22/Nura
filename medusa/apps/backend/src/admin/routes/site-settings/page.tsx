@@ -119,6 +119,23 @@ const SHARED_SECTIONS: SharedSection[] = [
         name: "review_submitted_text",
         label: "Confirmation après envoi d'un avis",
       },
+      { name: "stock_alert_title", label: "Alerte de stock : titre" },
+      {
+        name: "stock_alert_text",
+        label: "Alerte de stock : explication",
+        multiline: true,
+      },
+      { name: "stock_alert_cta", label: "Alerte de stock : bouton" },
+      {
+        name: "stock_alert_success",
+        label: "Alerte de stock : confirmation",
+        multiline: true,
+      },
+      {
+        name: "stock_alert_consent",
+        label: "Alerte de stock : mention de confidentialité",
+        multiline: true,
+      },
     ],
   },
 ]

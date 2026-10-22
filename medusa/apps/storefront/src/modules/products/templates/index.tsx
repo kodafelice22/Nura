@@ -69,7 +69,11 @@ const ProductTemplate = async ({
               />
             }
           >
-            <ProductActionsWrapper id={product.id} region={region} />
+            <ProductActionsWrapper
+              id={product.id}
+              region={region}
+              stockAlertContent={productExtras}
+            />
           </Suspense>
           <ProductTabs product={product} content={productExtras} />
           {productExtras !== null && (

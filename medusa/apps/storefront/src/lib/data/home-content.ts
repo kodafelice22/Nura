@@ -231,6 +231,11 @@ export type ProductExtrasBlock = {
   recently_viewed_text?: string
   reviews_empty_text?: string
   review_submitted_text?: string
+  stock_alert_title?: string
+  stock_alert_text?: string
+  stock_alert_cta?: string
+  stock_alert_success?: string
+  stock_alert_consent?: string
 }
 
 export type ContactExtrasBlock = {

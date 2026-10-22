@@ -1,6 +1,7 @@
 "use client"
 
 import { addToCart } from "@lib/data/cart"
+import { ProductExtrasBlock } from "@lib/data/home-content"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import Divider from "@modules/common/components/divider"
@@ -10,6 +11,7 @@ import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
+import StockAlertForm from "@modules/products/components/stock-alert-form"
 import WishlistButton from "@modules/products/components/wishlist-button"
 import { useRouter } from "next/navigation"
 
@@ -19,6 +21,7 @@ type ProductActionsProps = {
   disabled?: boolean
   isLoggedIn?: boolean
   isInWishlist?: boolean
+  stockAlertContent?: ProductExtrasBlock | null
 }
 
 const optionsAsKeymap = (
@@ -35,6 +38,7 @@ export default function ProductActions({
   disabled,
   isLoggedIn = false,
   isInWishlist = false,
+  stockAlertContent,
 }: ProductActionsProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -252,6 +256,13 @@ export default function ProductActions({
             isInWishlist={isInWishlist}
           />
         </div>
+        {selectedVariant?.id && !inStock && !disabled && (
+          <StockAlertForm
+            key={selectedVariant.id}
+            variantId={selectedVariant.id}
+            content={stockAlertContent}
+          />
+        )}
         {addError && (
           <p className="text-sm text-rose-700" role="alert">
             {addError}
