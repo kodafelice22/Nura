@@ -4,6 +4,8 @@ import Caddyfile.common
 
 {$STOREFRONT_DOMAIN} {
 	import security_headers
+	@admin_dashboard path /admin /admin/
+	redir @admin_dashboard https://{$BACKEND_DOMAIN}/app permanent
 	import storefront_proxy
 }
 
