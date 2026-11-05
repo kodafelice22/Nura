@@ -1,0 +1,18 @@
+import Caddyfile.common
+
+(preview_gate) {
+	@outside_preview not remote_ip {$PREVIEW_ALLOWED_CIDRS}
+	respond @outside_preview "Private preview" 403
+}
+
+{$STOREFRONT_DOMAIN} {
+	import preview_gate
+	import security_headers
+	import storefront_proxy
+}
+
+{$BACKEND_DOMAIN} {
+	import preview_gate
+	import security_headers
+	import backend_proxy
+}

@@ -57,6 +57,28 @@ type SharedBlockState = {
 
 const SHARED_SECTIONS: SharedSection[] = [
   {
+    key: "legal_information",
+    title: "Mentions légales",
+    description:
+      "Informations réglementaires affichées dans les mentions légales, les CGV et les politiques du site.",
+    fields: [
+      { name: "last_updated", label: "Date de dernière mise à jour" },
+      { name: "business_name", label: "Raison sociale" },
+      { name: "legal_form", label: "Forme juridique" },
+      { name: "capital", label: "Capital social" },
+      { name: "registry_city", label: "Ville d'immatriculation" },
+      { name: "registration_number", label: "Numéro d'immatriculation" },
+      { name: "vat_number", label: "Numéro de TVA" },
+      { name: "address", label: "Adresse du siège", multiline: true },
+      { name: "publication_director", label: "Directeur de publication" },
+      { name: "host_name", label: "Hébergeur" },
+      { name: "host_address", label: "Adresse de l'hébergeur", multiline: true },
+      { name: "host_phone", label: "Téléphone de l'hébergeur" },
+      { name: "mediator_name", label: "Médiateur de la consommation" },
+      { name: "mediator_url", label: "URL du médiateur" },
+    ],
+  },
+  {
     key: "newsletter_band",
     title: "Newsletter",
     description: "Le bandeau d'inscription affiché avant le pied de page.",

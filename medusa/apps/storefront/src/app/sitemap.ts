@@ -6,7 +6,7 @@ import { listCategories } from "@lib/data/categories"
 import { getBaseURL } from "@lib/util/env"
 import { listPosts } from "@lib/data/journal"
 
-const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "fr"
+const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "ci"
 
 const STATIC_PATHS = [
   "",

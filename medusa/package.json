@@ -12,6 +12,10 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "security:audit": "node scripts/audit-production.mjs",
+    "deploy:init": "bash scripts/init-production-env.sh",
+    "deploy:check": "bash scripts/vps-preflight.sh",
+    "deploy:check:bootstrap": "bash scripts/vps-preflight.sh --bootstrap",
     "backend:seed": "turbo seed --filter=@dtc/backend",
     "backend:dev": "turbo dev --filter=@dtc/backend",
     "storefront:dev": "turbo dev --filter=@dtc/storefront"
@@ -29,6 +33,7 @@
   ],
   "overrides": {
     "@grpc/grpc-js": "1.14.6",
+    "body-parser": "1.20.9",
     "eslint": {
       "ajv": "^6.12.4"
     },
@@ -39,6 +44,7 @@
       "lodash": "4.18.1"
     },
     "compression": "1.8.2",
+    "follow-redirects": "1.16.2",
     "proxy-addr": "2.0.8",
     "react": "19.0.5",
     "react-dom": "19.0.5",
@@ -57,10 +63,11 @@
     "tailwindcss-radix": false
   },
   "dependencies": {
-    "@medusajs/medusa": "2.21.0",
-    "@medusajs/types": "2.21.0",
+    "@medusajs/medusa": "2.22.3",
+    "@medusajs/types": "2.22.3",
     "caniuse-lite": "^1.0.30001810",
     "date-fns": "^3.6.0",
+    "posthog-node": "5.61.2",
     "react-aria": "^3.52.1",
     "rxjs": "^7.8.2"
   }

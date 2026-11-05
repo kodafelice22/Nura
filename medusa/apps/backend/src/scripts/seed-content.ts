@@ -155,6 +155,25 @@ const HOME_BLOCKS = [
     },
   },
   {
+    key: "legal_information",
+    data: {
+      last_updated: "",
+      business_name: "",
+      legal_form: "",
+      capital: "",
+      registry_city: "",
+      registration_number: "",
+      vat_number: "",
+      address: "",
+      publication_director: "",
+      host_name: "",
+      host_address: "",
+      host_phone: "",
+      mediator_name: "",
+      mediator_url: "",
+    },
+  },
+  {
     key: "faq",
     data: {
       items: [

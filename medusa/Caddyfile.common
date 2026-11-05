@@ -1,0 +1,85 @@
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), geolocation=(), microphone=()"
+		Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-src https://js.stripe.com https://hooks.stripe.com; media-src 'self' https:; upgrade-insecure-requests"
+		-Server
+	}
+}
+
+(storefront_proxy) {
+	@geo_ci {
+		maxmind_geolocation {
+			db_path /etc/caddy/geoip/GeoLite2-Country.mmdb
+			allow_countries CI
+		}
+	}
+
+	request_header -X-Geoip-Country
+	request_header @geo_ci X-Geoip-Country "ci"
+	reverse_proxy storefront:8000
+}
+
+(backend_proxy) {
+	handle_path /meilisearch/* {
+		rate_limit {
+			zone product_search {
+				key {remote_host}
+				events 120
+				window 1m
+				ipv6_prefix 64
+			}
+		}
+		reverse_proxy meilisearch:7700
+	}
+
+	rate_limit {
+		zone contact {
+			match {
+				method POST
+				path /store/contact
+			}
+			key {remote_host}
+			events 5
+			window 10m
+			ipv6_prefix 64
+		}
+		zone newsletter {
+			match {
+				method POST
+				path /store/newsletter
+			}
+			key {remote_host}
+			events 10
+			window 1h
+			ipv6_prefix 64
+		}
+		zone customer_writes {
+			match {
+				method POST
+				path /store/customers/me/reviews /store/customers/me/wishlist
+			}
+			key {remote_host}
+			events 20
+			window 1m
+			ipv6_prefix 64
+		}
+		zone authentication {
+			match {
+				method POST
+				path /auth/customer/* /auth/user/*
+			}
+			key {remote_host}
+			events 10
+			window 10m
+			ipv6_prefix 64
+		}
+	}
+
+	handle {
+		reverse_proxy backend:9000
+	}
+}

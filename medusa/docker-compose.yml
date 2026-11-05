@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: medusa
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U medusa"]
       interval: 5s
@@ -19,6 +21,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    networks:
+      - data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -37,6 +41,8 @@ services:
       GEOIPUPDATE_FREQUENCY: "72"
     volumes:
       - geoip_data:/usr/share/GeoIP
+    networks:
+      - maintenance
     healthcheck:
       test: ["CMD-SHELL", "test -s /usr/share/GeoIP/GeoLite2-Country.mmdb"]
       interval: 10s
@@ -51,13 +57,17 @@ services:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch_data:/meili_data
+    networks:
+      - data
+      - edge
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:7700/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:7700/health"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   backend:
+    image: nura/backend:current
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -70,6 +80,7 @@ services:
       meilisearch:
         condition: service_healthy
     environment:
+      MEDUSA_BOOTSTRAP_MODE: ${MEDUSA_BOOTSTRAP_MODE:-false}
       DATABASE_URL: postgres://medusa:${POSTGRES_PASSWORD}@postgres:5432/medusa
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
@@ -88,8 +99,9 @@ services:
       JEKO_WEBHOOK_SECRET: ${JEKO_WEBHOOK_SECRET:-}
       JEKO_API_URL: ${JEKO_API_URL:-}
       JEKO_AMOUNT_MULTIPLIER: ${JEKO_AMOUNT_MULTIPLIER:-}
-      MEDUSA_FF_RBAC: "true"
-      MEDUSA_FF_RBAC_FILTER_FIELDS: "true"
+      MEDUSA_FF_RBAC: ${MEDUSA_FF_RBAC:-false}
+      MEDUSA_FF_RBAC_FILTER_FIELDS: ${MEDUSA_FF_RBAC_FILTER_FIELDS:-false}
+      MEDUSA_LICENSE_KEY: ${MEDUSA_LICENSE_KEY:-}
       RESEND_API_KEY: ${RESEND_API_KEY:?set a production Resend API key}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:?set an address on a Resend-verified domain}
       MEILISEARCH_HOST: http://meilisearch:7700
@@ -107,6 +119,9 @@ services:
       ALLOW_PLACEHOLDER_PRODUCT_IMAGES: ${ALLOW_PLACEHOLDER_PRODUCT_IMAGES:-false}
     expose:
       - "9000"
+    networks:
+      - data
+      - edge
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:9000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 10s
@@ -120,6 +135,7 @@ services:
         max-file: "5"
 
   storefront:
+    image: nura/storefront:current
     build:
       context: .
       dockerfile: apps/storefront/Dockerfile
@@ -127,50 +143,52 @@ services:
         NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${NEXT_PUBLIC_MEDUSA_BACKEND_URL:?set to your public backend URL, e.g. https://api.nura-paris.com}
         NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY-}
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:?set to your public storefront URL, e.g. https://nura-paris.com}
-        NEXT_PUBLIC_DEFAULT_REGION: ${NEXT_PUBLIC_DEFAULT_REGION:-fr}
+        NEXT_PUBLIC_DEFAULT_REGION: ${NEXT_PUBLIC_DEFAULT_REGION:-ci}
         NEXT_PUBLIC_STRIPE_KEY: ${NEXT_PUBLIC_STRIPE_KEY:-}
         NEXT_PUBLIC_MEILISEARCH_HOST: ${NEXT_PUBLIC_MEILISEARCH_HOST:-}
         NEXT_PUBLIC_MEILISEARCH_API_KEY: ${NEXT_PUBLIC_MEILISEARCH_API_KEY:-}
         NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
         NEXT_PUBLIC_META_PIXEL_ID: ${NEXT_PUBLIC_META_PIXEL_ID:-}
         NEXT_PUBLIC_TIKTOK_PIXEL_ID: ${NEXT_PUBLIC_TIKTOK_PIXEL_ID:-}
-        LEGAL_LAST_UPDATED: ${LEGAL_LAST_UPDATED:?set the legal pages revision date}
-        LEGAL_BUSINESS_NAME: ${LEGAL_BUSINESS_NAME:?set the legal business name}
-        LEGAL_FORM: ${LEGAL_FORM:?set the legal form, or Sans objet}
-        LEGAL_CAPITAL: ${LEGAL_CAPITAL:?set the share capital, or Sans objet}
-        LEGAL_REGISTRY_CITY: ${LEGAL_REGISTRY_CITY:?set the registry city}
-        LEGAL_REGISTRATION_NUMBER: ${LEGAL_REGISTRATION_NUMBER:?set the SIREN/SIRET}
-        LEGAL_VAT_NUMBER: ${LEGAL_VAT_NUMBER:?set the VAT number, or Sans objet}
-        LEGAL_ADDRESS: ${LEGAL_ADDRESS:?set the registered address}
-        LEGAL_PUBLICATION_DIRECTOR: ${LEGAL_PUBLICATION_DIRECTOR:?set the publication director}
-        LEGAL_HOST_NAME: ${LEGAL_HOST_NAME:?set the hosting company}
-        LEGAL_HOST_ADDRESS: ${LEGAL_HOST_ADDRESS:?set the hosting company address}
-        LEGAL_HOST_PHONE: ${LEGAL_HOST_PHONE:?set the hosting company phone}
-        LEGAL_MEDIATOR_NAME: ${LEGAL_MEDIATOR_NAME:?choose a consumer mediator}
-        LEGAL_MEDIATOR_URL: ${LEGAL_MEDIATOR_URL:?set the consumer mediator URL}
+        LEGAL_LAST_UPDATED: ${LEGAL_LAST_UPDATED-}
+        LEGAL_BUSINESS_NAME: ${LEGAL_BUSINESS_NAME-}
+        LEGAL_FORM: ${LEGAL_FORM-}
+        LEGAL_CAPITAL: ${LEGAL_CAPITAL-}
+        LEGAL_REGISTRY_CITY: ${LEGAL_REGISTRY_CITY-}
+        LEGAL_REGISTRATION_NUMBER: ${LEGAL_REGISTRATION_NUMBER-}
+        LEGAL_VAT_NUMBER: ${LEGAL_VAT_NUMBER-}
+        LEGAL_ADDRESS: ${LEGAL_ADDRESS-}
+        LEGAL_PUBLICATION_DIRECTOR: ${LEGAL_PUBLICATION_DIRECTOR-}
+        LEGAL_HOST_NAME: ${LEGAL_HOST_NAME-}
+        LEGAL_HOST_ADDRESS: ${LEGAL_HOST_ADDRESS-}
+        LEGAL_HOST_PHONE: ${LEGAL_HOST_PHONE-}
+        LEGAL_MEDIATOR_NAME: ${LEGAL_MEDIATOR_NAME-}
+        LEGAL_MEDIATOR_URL: ${LEGAL_MEDIATOR_URL-}
     restart: unless-stopped
     environment:
       ORDER_ACCESS_SECRET: ${ORDER_ACCESS_SECRET:?set ORDER_ACCESS_SECRET in .env}
       REVALIDATE_SECRET: ${REVALIDATE_SECRET:?set REVALIDATE_SECRET in .env}
-      LEGAL_LAST_UPDATED: ${LEGAL_LAST_UPDATED:?set the legal pages revision date}
-      LEGAL_BUSINESS_NAME: ${LEGAL_BUSINESS_NAME:?set the legal business name}
-      LEGAL_FORM: ${LEGAL_FORM:?set the legal form, or Sans objet}
-      LEGAL_CAPITAL: ${LEGAL_CAPITAL:?set the share capital, or Sans objet}
-      LEGAL_REGISTRY_CITY: ${LEGAL_REGISTRY_CITY:?set the registry city}
-      LEGAL_REGISTRATION_NUMBER: ${LEGAL_REGISTRATION_NUMBER:?set the SIREN/SIRET}
-      LEGAL_VAT_NUMBER: ${LEGAL_VAT_NUMBER:?set the VAT number, or Sans objet}
-      LEGAL_ADDRESS: ${LEGAL_ADDRESS:?set the registered address}
-      LEGAL_PUBLICATION_DIRECTOR: ${LEGAL_PUBLICATION_DIRECTOR:?set the publication director}
-      LEGAL_HOST_NAME: ${LEGAL_HOST_NAME:?set the hosting company}
-      LEGAL_HOST_ADDRESS: ${LEGAL_HOST_ADDRESS:?set the hosting company address}
-      LEGAL_HOST_PHONE: ${LEGAL_HOST_PHONE:?set the hosting company phone}
-      LEGAL_MEDIATOR_NAME: ${LEGAL_MEDIATOR_NAME:?choose a consumer mediator}
-      LEGAL_MEDIATOR_URL: ${LEGAL_MEDIATOR_URL:?set the consumer mediator URL}
+      LEGAL_LAST_UPDATED: ${LEGAL_LAST_UPDATED-}
+      LEGAL_BUSINESS_NAME: ${LEGAL_BUSINESS_NAME-}
+      LEGAL_FORM: ${LEGAL_FORM-}
+      LEGAL_CAPITAL: ${LEGAL_CAPITAL-}
+      LEGAL_REGISTRY_CITY: ${LEGAL_REGISTRY_CITY-}
+      LEGAL_REGISTRATION_NUMBER: ${LEGAL_REGISTRATION_NUMBER-}
+      LEGAL_VAT_NUMBER: ${LEGAL_VAT_NUMBER-}
+      LEGAL_ADDRESS: ${LEGAL_ADDRESS-}
+      LEGAL_PUBLICATION_DIRECTOR: ${LEGAL_PUBLICATION_DIRECTOR-}
+      LEGAL_HOST_NAME: ${LEGAL_HOST_NAME-}
+      LEGAL_HOST_ADDRESS: ${LEGAL_HOST_ADDRESS-}
+      LEGAL_HOST_PHONE: ${LEGAL_HOST_PHONE-}
+      LEGAL_MEDIATOR_NAME: ${LEGAL_MEDIATOR_NAME-}
+      LEGAL_MEDIATOR_URL: ${LEGAL_MEDIATOR_URL-}
     depends_on:
       backend:
         condition: service_healthy
     expose:
       - "8000"
+    networks:
+      - edge
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:8000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 10s
@@ -184,13 +202,16 @@ services:
         max-file: "5"
 
   caddy:
+    image: nura/caddy:current
     build:
       context: .
       dockerfile: Dockerfile.caddy
+    command: ["caddy", "run", "--config", "${CADDY_CONFIG_FILE:-/etc/caddy/Caddyfile}", "--adapter", "caddyfile"]
     restart: unless-stopped
     environment:
       STOREFRONT_DOMAIN: ${STOREFRONT_DOMAIN:?set the storefront hostname}
       BACKEND_DOMAIN: ${BACKEND_DOMAIN:?set the backend hostname}
+      PREVIEW_ALLOWED_CIDRS: ${PREVIEW_ALLOWED_CIDRS:-}
     depends_on:
       backend:
         condition: service_healthy
@@ -200,12 +221,17 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile.bootstrap:/etc/caddy/Caddyfile.bootstrap:ro
+      - ./Caddyfile.common:/etc/caddy/Caddyfile.common:ro
+      - ./Caddyfile.preview:/etc/caddy/Caddyfile.preview:ro
       - geoip_data:/etc/caddy/geoip:ro
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - edge
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:2019/config/"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:2019/config/"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -222,3 +248,9 @@ volumes:
   meilisearch_data:
   caddy_data:
   caddy_config:
+
+networks:
+  data:
+    internal: true
+  edge:
+  maintenance:

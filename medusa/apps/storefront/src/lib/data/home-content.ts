@@ -122,6 +122,23 @@ export type WhatsappBlock = {
   message?: string
 }
 
+export type LegalInformationBlock = {
+  last_updated?: string
+  business_name?: string
+  legal_form?: string
+  capital?: string
+  registry_city?: string
+  registration_number?: string
+  vat_number?: string
+  address?: string
+  publication_director?: string
+  host_name?: string
+  host_address?: string
+  host_phone?: string
+  mediator_name?: string
+  mediator_url?: string
+}
+
 export type CartMessagesBlock = {
   empty_title?: string
   empty_text?: string
@@ -261,6 +278,7 @@ export type HomeBlocks = {
   cookie_banner?: CookieBannerBlock
   footer_extra?: FooterExtraBlock
   whatsapp?: WhatsappBlock
+  legal_information?: LegalInformationBlock
   page_a_propos?: PageBlock
   page_contact?: PageBlock
   page_livraison_retours?: PageBlock

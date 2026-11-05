@@ -25,13 +25,17 @@ COPY apps/storefront/package.json apps/storefront/package.json
 RUN npm ci --workspace=@dtc/backend --include-workspace-root
 
 COPY apps/backend apps/backend
+COPY scripts/audit-production.mjs /tmp/audit-production.mjs
 WORKDIR /app/apps/backend
 RUN npm run build
 
 # `medusa build` emits a self-contained app in .medusa/server with its own
-# package.json — install its production deps there.
+# package.json — restore the security override before installing its
+# production deps, then audit the exact dependency tree shipped at runtime.
 WORKDIR /app/apps/backend/.medusa/server
-RUN npm install --omit=dev
+RUN npm pkg set overrides.lodash=4.18.1 \
+	&& npm install --omit=dev \
+	&& node /tmp/audit-production.mjs
 
 FROM node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5 AS runtime
 WORKDIR /app

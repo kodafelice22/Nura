@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import LegalPageLayout from "@modules/legal/components/legal-page-layout"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { getSiteSettings } from "@lib/data/site-settings"
-import { LEGAL_INFORMATION } from "@lib/legal"
+import { getLegalInformation } from "@lib/legal"
 
 export const metadata: Metadata = {
   title: "Conditions générales de vente",
@@ -10,19 +10,22 @@ export const metadata: Metadata = {
 }
 
 export default async function CgvPage() {
-  const siteSettings = await getSiteSettings()
+  const [siteSettings, legalInformation] = await Promise.all([
+    getSiteSettings(),
+    getLegalInformation(),
+  ])
 
   return (
     <LegalPageLayout
       title="Conditions générales de vente"
-      updatedAt={LEGAL_INFORMATION.lastUpdated}
+      updatedAt={legalInformation.lastUpdated}
     >
       <section>
         <h2>1. Objet</h2>
         <p>
           Les présentes conditions générales de vente (CGV) régissent les
-          ventes de produits réalisées sur le site {LEGAL_INFORMATION.siteHost} entre{" "}
-          {LEGAL_INFORMATION.businessName} (voir{" "}
+          ventes de produits réalisées sur le site {legalInformation.siteHost} entre{" "}
+          {legalInformation.businessName} (voir{" "}
           <LocalizedClientLink href="/mentions-legales">
             mentions légales
           </LocalizedClientLink>

@@ -27,9 +27,9 @@ export const HOME_BLOCK_KEYS = [
   "cookie_banner",
   "footer_extra",
   "whatsapp",
+  "legal_information",
   // Static pages (title + body), rendered through the same lightweight
-  // markup as Journal articles. Legal pages (CGV, Confidentialité, Mentions
-  // légales) are deliberately excluded — see docs/CONTENT.md.
+  // markup as Journal articles.
   "page_a_propos",
   "page_contact",
   "page_livraison_retours",

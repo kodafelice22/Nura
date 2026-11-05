@@ -5,6 +5,8 @@ loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 const modules: any[] = []
 const plugins: any[] = []
 const isProduction = process.env.NODE_ENV === 'production'
+const isBootstrap =
+  isProduction && process.env.MEDUSA_BOOTSTRAP_MODE === 'true'
 
 const requireCompleteConfig = (name: string, keys: string[]) => {
   const configuredKeys = keys.filter((key) => Boolean(process.env[key]))
@@ -115,7 +117,7 @@ if (process.env.JEKO_API_KEY) {
   })
 }
 
-if (isProduction && paymentProviders.length === 0) {
+if (isProduction && !isBootstrap && paymentProviders.length === 0) {
   throw new MedusaError(
     MedusaError.Types.INVALID_DATA,
     'Production requires at least one configured payment provider.'
@@ -160,7 +162,7 @@ if (process.env.RESEND_API_KEY) {
   })
 }
 
-// RBAC (Super Admin / Admin / Manager roles). Medusa's own
+// Enterprise RBAC (Super Admin / Admin / Manager roles). Medusa's own
 // `disable: !FeatureFlag.isFeatureEnabled("rbac")` default for this module
 // is evaluated inside defineConfig() itself, which runs before the async
 // feature-flag loader has read MEDUSA_FF_RBAC from the environment — so the
@@ -168,7 +170,16 @@ if (process.env.RESEND_API_KEY) {
 // explicitly here (reading process.env directly, no such ordering issue)
 // works around that. MEDUSA_FF_RBAC still needs to be set to `true` so the
 // admin dashboard shows the Roles screens.
-if (process.env.MEDUSA_FF_RBAC === 'true') {
+const rbacEnabled = process.env.MEDUSA_FF_RBAC === 'true'
+
+if (rbacEnabled && !process.env.MEDUSA_LICENSE_KEY) {
+  throw new MedusaError(
+    MedusaError.Types.INVALID_DATA,
+    'MEDUSA_FF_RBAC requires a valid MEDUSA_LICENSE_KEY.'
+  )
+}
+
+if (rbacEnabled) {
   modules.push({ resolve: '@medusajs/medusa/rbac' })
 }
 

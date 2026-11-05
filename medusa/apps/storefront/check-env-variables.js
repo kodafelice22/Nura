@@ -17,28 +17,6 @@ const requiredEnvs = [
       productionOnly: true,
     };
   }),
-  ...[
-    "LEGAL_BUSINESS_NAME",
-    "LEGAL_LAST_UPDATED",
-    "LEGAL_FORM",
-    "LEGAL_CAPITAL",
-    "LEGAL_REGISTRY_CITY",
-    "LEGAL_REGISTRATION_NUMBER",
-    "LEGAL_VAT_NUMBER",
-    "LEGAL_ADDRESS",
-    "LEGAL_PUBLICATION_DIRECTOR",
-    "LEGAL_HOST_NAME",
-    "LEGAL_HOST_ADDRESS",
-    "LEGAL_HOST_PHONE",
-    "LEGAL_MEDIATOR_NAME",
-    "LEGAL_MEDIATOR_URL",
-  ].map(function (key) {
-    return {
-      key,
-      description: "Required for compliant production legal pages.",
-      productionOnly: true,
-    };
-  }),
 ];
 
 function checkEnvVariables() {

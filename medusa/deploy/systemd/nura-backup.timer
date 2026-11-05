@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Nura PostgreSQL backup every night
+
+[Timer]
+OnCalendar=*-*-* 02:15:00 UTC
+Persistent=true
+RandomizedDelaySec=15m
+Unit=nura-backup.service
+
+[Install]
+WantedBy=timers.target

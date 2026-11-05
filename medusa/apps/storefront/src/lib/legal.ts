@@ -1,30 +1,44 @@
 import "server-only"
-import { getBaseURL } from "@lib/util/env"
+import { getHomeContent, LegalInformationBlock } from "./data/home-content"
+import { getBaseURL } from "./util/env"
 
-const legalValue = (key: string) => {
-  const value = process.env[key]?.trim()
+const FALLBACK = "À compléter dans l’Admin"
 
-  if (!value && process.env.NODE_ENV === "production") {
-    throw new Error(`${key} is required for production legal pages`)
-  }
+const legalValue = (
+  block: LegalInformationBlock | undefined,
+  field: keyof LegalInformationBlock,
+  envKey: string
+) => block?.[field]?.trim() || process.env[envKey]?.trim() || FALLBACK
 
-  return value || `Configuration requise : ${key}`
+export const resolveLegalInformation = (legal?: LegalInformationBlock) => ({
+    siteHost: new URL(getBaseURL()).host,
+    lastUpdated: legalValue(legal, "last_updated", "LEGAL_LAST_UPDATED"),
+    businessName: legalValue(legal, "business_name", "LEGAL_BUSINESS_NAME"),
+    legalForm: legalValue(legal, "legal_form", "LEGAL_FORM"),
+    capital: legalValue(legal, "capital", "LEGAL_CAPITAL"),
+    registryCity: legalValue(legal, "registry_city", "LEGAL_REGISTRY_CITY"),
+    registrationNumber: legalValue(
+      legal,
+      "registration_number",
+      "LEGAL_REGISTRATION_NUMBER"
+    ),
+    vatNumber: legalValue(legal, "vat_number", "LEGAL_VAT_NUMBER"),
+    address: legalValue(legal, "address", "LEGAL_ADDRESS"),
+    publicationDirector: legalValue(
+      legal,
+      "publication_director",
+      "LEGAL_PUBLICATION_DIRECTOR"
+    ),
+    hostName: legalValue(legal, "host_name", "LEGAL_HOST_NAME"),
+    hostAddress: legalValue(legal, "host_address", "LEGAL_HOST_ADDRESS"),
+    hostPhone: legalValue(legal, "host_phone", "LEGAL_HOST_PHONE"),
+    mediatorName: legalValue(legal, "mediator_name", "LEGAL_MEDIATOR_NAME"),
+    mediatorUrl:
+      legal?.mediator_url?.trim() || process.env.LEGAL_MEDIATOR_URL?.trim() || "",
+})
+
+export const getLegalInformation = async () => {
+  const { blocks } = await getHomeContent()
+
+  return resolveLegalInformation(blocks.legal_information)
 }
-
-export const LEGAL_INFORMATION = {
-  siteHost: new URL(getBaseURL()).host,
-  lastUpdated: legalValue("LEGAL_LAST_UPDATED"),
-  businessName: legalValue("LEGAL_BUSINESS_NAME"),
-  legalForm: legalValue("LEGAL_FORM"),
-  capital: legalValue("LEGAL_CAPITAL"),
-  registryCity: legalValue("LEGAL_REGISTRY_CITY"),
-  registrationNumber: legalValue("LEGAL_REGISTRATION_NUMBER"),
-  vatNumber: legalValue("LEGAL_VAT_NUMBER"),
-  address: legalValue("LEGAL_ADDRESS"),
-  publicationDirector: legalValue("LEGAL_PUBLICATION_DIRECTOR"),
-  hostName: legalValue("LEGAL_HOST_NAME"),
-  hostAddress: legalValue("LEGAL_HOST_ADDRESS"),
-  hostPhone: legalValue("LEGAL_HOST_PHONE"),
-  mediatorName: legalValue("LEGAL_MEDIATOR_NAME"),
-  mediatorUrl: legalValue("LEGAL_MEDIATOR_URL"),
-} as const

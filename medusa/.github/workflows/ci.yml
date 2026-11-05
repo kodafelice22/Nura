@@ -33,8 +33,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint deployment scripts
+        run: shellcheck scripts/*.sh
+
       - name: Audit high-risk production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: npm run security:audit
 
       - name: Lint
         run: npm run lint
@@ -47,3 +50,11 @@ jobs:
 
       - name: Build backend
         run: npm run build --workspace=@dtc/backend
+
+      - name: Build storefront
+        env:
+          NEXT_PUBLIC_MEDUSA_BACKEND_URL: https://api.example.invalid
+          NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: pk_ci_00000000000000000000000000000000
+          NEXT_PUBLIC_BASE_URL: https://store.example.invalid
+          NEXT_PUBLIC_DEFAULT_REGION: ci
+        run: npm run build --workspace=@dtc/storefront

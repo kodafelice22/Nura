@@ -1,0 +1,6 @@
+import Caddyfile.common
+
+{$BACKEND_DOMAIN} {
+	import security_headers
+	import backend_proxy
+}

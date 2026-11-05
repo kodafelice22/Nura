@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import LegalPageLayout from "@modules/legal/components/legal-page-layout"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { getSiteSettings } from "@lib/data/site-settings"
-import { LEGAL_INFORMATION } from "@lib/legal"
+import { getLegalInformation } from "@lib/legal"
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
@@ -11,18 +11,21 @@ export const metadata: Metadata = {
 }
 
 export default async function ConfidentialitePage() {
-  const siteSettings = await getSiteSettings()
+  const [siteSettings, legalInformation] = await Promise.all([
+    getSiteSettings(),
+    getLegalInformation(),
+  ])
 
   return (
     <LegalPageLayout
       title="Politique de confidentialité"
-      updatedAt={LEGAL_INFORMATION.lastUpdated}
+      updatedAt={legalInformation.lastUpdated}
     >
       <section>
         <h2>1. Responsable de traitement</h2>
         <p>
           Le responsable du traitement des données personnelles collectées
-          sur {LEGAL_INFORMATION.siteHost} est {LEGAL_INFORMATION.businessName}, dont
+          sur {legalInformation.siteHost} est {legalInformation.businessName}, dont
           les coordonnées figurent dans nos{" "}
           <LocalizedClientLink href="/mentions-legales">
             mentions légales

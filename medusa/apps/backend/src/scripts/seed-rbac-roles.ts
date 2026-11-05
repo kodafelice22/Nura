@@ -1,4 +1,9 @@
 import { MedusaContainer } from "@medusajs/framework"
+import type {
+  CreateRbacPolicyDTO,
+  PolicyOperationValue,
+  PolicyResourceValue,
+} from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import {
   createRbacPoliciesWorkflow,
@@ -30,7 +35,7 @@ export default async function seedRbacRoles({
 
   logger.info("Reconciling Admin and Manager RBAC policies...")
 
-  const adminResources = [
+  const adminResources: PolicyResourceValue[] = [
     "user",
     "store",
     "api_key",
@@ -48,7 +53,7 @@ export default async function seedRbacRoles({
   // "delete"), not "write" — and creating/editing a product also touches the
   // inventory_item and price resources under the hood, so Manager needs
   // those too (without delete) to actually be able to save a product.
-  const managerResources = [
+  const managerResources: PolicyResourceValue[] = [
     "product",
     "order",
     "customer",
@@ -56,13 +61,17 @@ export default async function seedRbacRoles({
     "inventory_item",
     "price",
   ]
-  const managerOperations = ["read", "create", "update"]
+  const managerOperations: PolicyOperationValue[] = [
+    "read",
+    "create",
+    "update",
+  ]
 
-  const policyDefinitions = [
+  const policyDefinitions: CreateRbacPolicyDTO[] = [
     ...adminResources.map((resource) => ({
       key: `${resource}:*:admin`,
       resource,
-      operation: "*",
+      operation: "*" as const,
       name: `Admin — ${resource}`,
     })),
     ...managerResources.flatMap((resource) =>

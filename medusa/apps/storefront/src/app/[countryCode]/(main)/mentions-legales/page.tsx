@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import LegalPageLayout from "@modules/legal/components/legal-page-layout"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { getSiteSettings } from "@lib/data/site-settings"
-import { LEGAL_INFORMATION } from "@lib/legal"
+import { getLegalInformation } from "@lib/legal"
 
 export const metadata: Metadata = {
   title: "Mentions légales",
@@ -10,27 +10,30 @@ export const metadata: Metadata = {
 }
 
 export default async function MentionsLegalesPage() {
-  const siteSettings = await getSiteSettings()
+  const [siteSettings, legalInformation] = await Promise.all([
+    getSiteSettings(),
+    getLegalInformation(),
+  ])
 
   return (
     <LegalPageLayout
       title="Mentions légales"
-      updatedAt={LEGAL_INFORMATION.lastUpdated}
+      updatedAt={legalInformation.lastUpdated}
     >
       <section>
         <h2>Éditeur du site</h2>
         <p>
-          Le site {LEGAL_INFORMATION.siteHost} est édité par :
+          Le site {legalInformation.siteHost} est édité par :
           <br />
-          <strong>{LEGAL_INFORMATION.businessName}</strong>,{" "}
-          {LEGAL_INFORMATION.legalForm}, au capital de {LEGAL_INFORMATION.capital}
+          <strong>{legalInformation.businessName}</strong>,{" "}
+          {legalInformation.legalForm}, au capital de {legalInformation.capital}
           <br />
-          Immatriculée au RCS de {LEGAL_INFORMATION.registryCity} sous le numéro{" "}
-          {LEGAL_INFORMATION.registrationNumber}
+          Immatriculée au RCS de {legalInformation.registryCity} sous le numéro{" "}
+          {legalInformation.registrationNumber}
           <br />
-          Numéro de TVA intracommunautaire : {LEGAL_INFORMATION.vatNumber}
+          Numéro de TVA intracommunautaire : {legalInformation.vatNumber}
           <br />
-          Siège social : {LEGAL_INFORMATION.address}
+          Siège social : {legalInformation.address}
           <br />
           Téléphone :{" "}
           {siteSettings.phones
@@ -44,7 +47,7 @@ export default async function MentionsLegalesPage() {
 
       <section>
         <h2>Directeur de la publication</h2>
-        <p>{LEGAL_INFORMATION.publicationDirector}</p>
+        <p>{legalInformation.publicationDirector}</p>
       </section>
 
       <section>
@@ -52,11 +55,11 @@ export default async function MentionsLegalesPage() {
         <p>
           Le site est hébergé par :
           <br />
-          <strong>{LEGAL_INFORMATION.hostName}</strong>
+          <strong>{legalInformation.hostName}</strong>
           <br />
-          {LEGAL_INFORMATION.hostAddress}
+          {legalInformation.hostAddress}
           <br />
-          {LEGAL_INFORMATION.hostPhone}
+          {legalInformation.hostPhone}
         </p>
       </section>
 
@@ -90,12 +93,20 @@ export default async function MentionsLegalesPage() {
         <p>
           Conformément à l&apos;article L.616-1 du Code de la consommation,
           tout client peut recourir gratuitement au service de médiation{" "}
-          {LEGAL_INFORMATION.mediatorName} en cas de
+          {legalInformation.mediatorName} en cas de
           litige non résolu directement avec notre service client, dans un
           délai d&apos;un an à compter de sa réclamation écrite :{" "}
-          <a href={LEGAL_INFORMATION.mediatorUrl} target="_blank" rel="noreferrer">
-            {LEGAL_INFORMATION.mediatorUrl}
-          </a>.
+          {legalInformation.mediatorUrl ? (
+            <a
+              href={legalInformation.mediatorUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {legalInformation.mediatorUrl}
+            </a>
+          ) : (
+            "À compléter dans l’Admin"
+          )}.
         </p>
       </section>
     </LegalPageLayout>

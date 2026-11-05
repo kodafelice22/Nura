@@ -6,40 +6,77 @@ alors sur ton propre serveur : tu possèdes le code et les données.
 
 ## Prérequis côté toi
 
-1. **Un VPS** — 2 vCPU / 4 Go de RAM suffisent largement pour démarrer
+1. **Un VPS** — 2 vCPU / 4 Go de RAM suffisent pour démarrer
    (ex. Hetzner CX22 ou équivalent, ~5-10 €/mois).
 2. **Un nom de domaine** pointé vers l'IP du serveur (deux sous-domaines :
    un pour la boutique, un pour l'API — ex. `nura-paris.com` et
    `api.nura-paris.com`, en enregistrements DNS de type A).
 3. **Docker installé sur le serveur** :
+
    ```bash
    curl -fsSL https://get.docker.com | sh
    ```
+
+## Préparer et durcir le VPS
+
+Sur un Ubuntu LTS ou Debian neuf, copie le dépôt ou au minimum ce script sur le
+serveur, puis lance la préparation en tant que root. L'option de clé publique
+est recommandée et n'accepte qu'un fichier public `.pub` :
+
+```bash
+sudo SSH_PUBLIC_KEY_FILE=/root/deploy-key.pub \
+   DEPLOY_USER=deploy \
+   ./scripts/vps-setup-host.sh
+```
+
+Le script installe Docker depuis son dépôt officiel, Docker Compose, Git,
+Fail2ban, les mises à jour de sécurité et UFW. Il n'ouvre que SSH, HTTP et
+HTTPS, puis prépare `/opt/nura`, `/etc/nura` et `/var/backups/nura`.
+
+La clé SSH publique doit être installée dans `/home/deploy/.ssh/authorized_keys`.
+Teste une nouvelle connexion avec `deploy` avant de désactiver l'authentification
+SSH par mot de passe. L'appartenance au groupe `docker` donne de fait des droits
+équivalents à root : elle doit rester limitée à cet utilisateur d'exploitation.
+
+Place le dépôt dans `/opt/nura/medusa`, ce qui correspond aux unités systemd
+fournies pour les sauvegardes :
+
+```bash
+sudo install -d -o deploy -g deploy /opt/nura
+sudo -u deploy git clone <URL_DU_DEPOT> /opt/nura/medusa
+cd /opt/nura/medusa
+```
 
 ## Étapes
 
 1. **Cloner le dépôt sur le serveur** et se placer dans `medusa/`.
 
 2. **Créer le fichier `.env`** à partir de `.env.example` :
+
    ```bash
-   cp .env.example .env
+   bash scripts/init-production-env.sh
    ```
-   Puis remplir :
-   - `POSTGRES_PASSWORD`, `JWT_SECRET`, `COOKIE_SECRET` — générer avec
-     `openssl rand -hex 32` (une valeur différente pour chacun).
+
+   Cette commande crée le fichier s'il manque, génère les secrets internes
+   absents, conserve toute valeur existante et applique les permissions `600`.
+    Puis remplir :
+
+    - `POSTGRES_PASSWORD`, `JWT_SECRET`, `COOKIE_SECRET` — générer avec
+       `openssl rand -hex 32` (une valeur différente pour chacun).
     - `ORDER_ACCESS_SECRET` et `BACKUP_ENCRYPTION_KEY` — deux autres valeurs
        distinctes générées de la même façon.
     - `STOREFRONT_DOMAIN` / `BACKEND_DOMAIN` — les noms d'hôte publics sans
        `https://`; Caddy les utilise directement.
     - `STORE_CORS` / `ADMIN_CORS` / `AUTH_CORS` — tes vraies origines HTTPS.
-   - `NEXT_PUBLIC_MEDUSA_BACKEND_URL` / `NEXT_PUBLIC_BASE_URL` — tes vraies
-     URLs publiques.
+    - `NEXT_PUBLIC_MEDUSA_BACKEND_URL` / `NEXT_PUBLIC_BASE_URL` — tes vraies
+       URLs publiques.
     - `NEXT_PUBLIC_DEFAULT_REGION` — le code pays utilisé en dernier recours
-       (`fr` par défaut).
+       (`ci` par défaut).
     - Les variables `S3_*` d'un bucket S3/R2 persistant (voir « Médias »).
-   - Toutes les variables `LEGAL_*`, dont `LEGAL_LAST_UPDATED`, avec les informations réelles de
-       l'entreprise, de l'hébergeur et du médiateur choisi. Le storefront de
-       production ne se construit pas si l'une d'elles manque.
+    - Les variables `LEGAL_*` sont des valeurs de secours optionnelles. Les
+       informations réelles de l'entreprise, de l'hébergeur et du médiateur
+       peuvent être renseignées après le déploiement dans **Réglages du site →
+       Mentions légales** de l'Admin.
     - Au moins Stripe ou Jèko doit être configuré avant le premier démarrage
        de production. Le paiement manuel n'y est jamais proposé.
     - `RESEND_API_KEY` et `RESEND_FROM_EMAIL` sont obligatoires en production;
@@ -49,51 +86,79 @@ alors sur ton propre serveur : tu possèdes le code et les données.
     - `REVALIDATE_SECRET` — une valeur partagée générée avec
        `openssl rand -hex 32`, afin que les publications Admin soient visibles
        immédiatement.
-   - `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` — laisser vide pour l'instant
+    - `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` — laisser vide pour l'instant
        (étape 5). Caddy peut exposer l'admin avant le storefront.
 
-3. **Vérifier la configuration** avant le démarrage :
+3. **Protéger et vérifier la configuration** avant le démarrage :
+
    ```bash
-   docker compose config --quiet
+   chmod 600 .env
+   bash scripts/vps-preflight.sh --bootstrap
    ```
 
-4. **Démarrer** :
+   Le préflight vérifie les outils, les ressources du serveur, les domaines,
+   les secrets distincts, le stockage S3, l'email, le paiement et le rendu
+   Docker Compose. Le mode `bootstrap` tolère uniquement l'absence de la clé
+   publiable Medusa, qui n'existe pas encore au premier démarrage.
+
+4. **Démarrer le socle** :
+
    ```bash
-   docker compose up -d --build postgres redis meilisearch geoipupdate backend caddy
+   ./scripts/vps-deploy.sh --bootstrap
    ```
-   Au premier démarrage, le backend crée automatiquement les tables
-   (migrations). Vérifie que tout va bien :
+
+   Le script construit avant de basculer, attend les healthchecks et vérifie
+   publiquement `https://<BACKEND_DOMAIN>/health`. Au premier démarrage, le
+   backend applique automatiquement les migrations. En cas d'échec :
+
    ```bash
-   docker compose logs -f backend
+   docker compose logs --tail=200 backend caddy
    ```
 
 5. **Créer ton compte admin et une clé publiable** :
+
    ```bash
    docker compose exec backend npx medusa user -e ton-email@exemple.com -p un-mot-de-passe-solide
    ```
+
    Connecte-toi ensuite sur `https://<BACKEND_DOMAIN>/app`, va dans
    **Settings > API Key Management > Publishable Keys**, crée une clé, et
    colle-la dans `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` du fichier `.env`.
 
-   ⚠️ **Ne relance plus jamais cette commande `medusa user` après l'étape 7**
-   (une fois les rôles Admin/Manager seedés) — bug confirmé de cette version
-   de Medusa : la commande efface silencieusement toutes les politiques RBAC
-   personnalisées. Pour ajouter d'autres comptes admin ensuite, utilise
-   l'invitation depuis le dashboard (**Settings > Team > Invite**).
+   Si `MEDUSA_FF_RBAC=false`, limite-toi à des administrateurs de confiance :
+   tous les comptes admin disposent d'un accès complet. Pour déléguer des
+   rôles Admin/Manager, obtiens une licence Medusa, renseigne
+   `MEDUSA_LICENSE_KEY`, active les deux flags RBAC puis redéploie.
+
+   ⚠️ **Avec RBAC activé, ne relance plus jamais cette commande `medusa user`
+   après l'étape 7** (une fois les rôles Admin/Manager seedés) — bug confirmé
+   de cette version de Medusa : la commande efface silencieusement toutes les
+   politiques RBAC personnalisées. Ajoute les comptes suivants par invitation
+   depuis le dashboard (**Settings > Team > Invite**).
 
 6. **Construire et démarrer le storefront** (maintenant que la clé existe) :
+
    ```bash
-   docker compose up -d --build storefront
+   bash scripts/vps-preflight.sh
+   ./scripts/vps-deploy.sh
    ```
 
-7. **Seeder le catalogue Nura et les rôles** (une seule fois, dans cet ordre —
-   fais-le juste après l'étape 5, avant de créer d'autres comptes admin).
+   Ce second passage valide la clé publiable, sauvegarde la base si elle tourne,
+   conserve les images applicatives précédentes, déploie toute la stack et
+   exécute les smoke tests publics du backend et du storefront.
+
+7. **Seeder le catalogue Nura et, si licencié, les rôles** (une seule fois,
+   dans cet ordre — fais-le juste après l'étape 5, avant de créer d'autres
+   comptes admin). La release initialise automatiquement la région CI/XOF/Jèko
+   avec son seed idempotent.
    Remplace d'abord les URL Unsplash de `src/scripts/product-images.ts` par
    les vrais packshots Nura; le seed bloque ces placeholders en production :
+
    ```bash
-   docker compose exec backend npx medusa exec ./src/scripts/seed-nura.ts
-   docker compose exec backend npx medusa exec ./src/scripts/add-nura-collection.ts
-   docker compose exec backend npx medusa exec ./src/scripts/seed-rbac-roles.ts
+   docker compose exec backend npx medusa exec ./src/scripts/seed-nura.js
+   docker compose exec backend npx medusa exec ./src/scripts/add-nura-collection.js
+   # Uniquement avec MEDUSA_FF_RBAC=true et MEDUSA_LICENSE_KEY défini :
+   docker compose exec backend npx medusa exec ./src/scripts/seed-rbac-roles.js
    ```
 
 Le site est alors accessible sur tes deux domaines, avec HTTPS automatique
@@ -101,7 +166,8 @@ Le site est alors accessible sur tes deux domaines, avec HTTPS automatique
 
 ## Paiement réel
 
-Deux régions, deux moyens de paiement. Le provider manuel reste disponible en
+La région Côte d'Ivoire utilise Jèko. Une région Europe peut être ajoutée avec
+Stripe lorsque ce compte est disponible. Le provider manuel reste réservé au
 développement. En production, le backend refuse de démarrer tant qu'aucun
 provider réel n'est configuré afin d'éviter toute commande sans paiement réel.
 
@@ -172,6 +238,7 @@ une fois le compte créé, assigne-lui un rôle via **Settings > Roles**.
 ## Emails (Resend)
 
 Une fois Resend configuré, le site envoie automatiquement :
+
 - le message du formulaire `/contact` (à toi, `RESEND_FROM_EMAIL`),
 - la confirmation de commande (au client, après paiement),
 - les notifications d'annulation, d'expédition, de livraison et de remboursement,
@@ -194,45 +261,59 @@ deux variables.
 
 Auto-hébergée, aucun compte tiers requis :
 
-1. Génère une clé et mets-la dans `.env` (`MEILISEARCH_API_KEY`) :
+1. `bash scripts/init-production-env.sh` génère `MEILISEARCH_API_KEY`. Pour la remplacer
+   manuellement, utilise une valeur dédiée d'au moins 32 caractères :
+
    ```bash
-   openssl rand -hex 16
+   openssl rand -hex 32
    ```
+
 2. Démarre Meilisearch, puis crée l'index des produits avec sa clé primaire
    (sans cela, la graine échoue : Meilisearch ne peut pas inférer la clé
    primaire quand plusieurs champs se terminent par `id`) :
+
    ```bash
    docker compose up -d meilisearch
-   curl -X POST http://localhost:7700/indexes \
-     -H "Authorization: Bearer $MEILISEARCH_API_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{"uid":"products","primaryKey":"id"}'
+    docker compose exec -T meilisearch sh -c '
+       wget -qO- \
+          --header="Authorization: Bearer ${MEILI_MASTER_KEY}" \
+          --header="Content-Type: application/json" \
+          --post-data="{\"uid\":\"products\",\"primaryKey\":\"id\"}" \
+          http://127.0.0.1:7700/indexes
+    '
    ```
+
    Ensuite démarre tout :
+
    ```bash
    docker compose up -d --build
    ```
+
    Au démarrage, le backend remplit automatiquement l'index des produits et
    le maintient à jour à chaque création/modification de produit.
 3. Crée une clé « search-only » (celle-ci est exposée au navigateur, elle
    ne doit jamais être la clé maître ci-dessus) :
+
    ```bash
    docker compose exec meilisearch curl -s -X POST http://localhost:7700/keys \
      -H "Authorization: Bearer $MEILISEARCH_API_KEY" \
      -H "Content-Type: application/json" \
      -d '{"description":"Storefront search-only key","actions":["search"],"indexes":["products"],"expiresAt":null}'
    ```
+
    Copie le `key` retourné dans `.env` (`NEXT_PUBLIC_MEILISEARCH_API_KEY`),
    mets `NEXT_PUBLIC_MEILISEARCH_HOST` sur
    `https://<BACKEND_DOMAIN>/meilisearch` (Caddy expose déjà ce chemin avec
    une limite de débit), puis :
+
    ```bash
    docker compose up -d --build storefront
    ```
 
-Tant que `MEILISEARCH_API_KEY` est vide, le site fonctionne normalement,
-simplement sans barre de recherche (navigation par catégories/collections
-uniquement).
+Le preflight de production exige la clé maître `MEILISEARCH_API_KEY`. La clé
+publique `NEXT_PUBLIC_MEILISEARCH_API_KEY` reste optionnelle : sans elle, le
+site fonctionne sans barre de recherche, avec la navigation par catégories et
+collections.
 
 ## Détection automatique du marché
 
@@ -248,10 +329,12 @@ Caddy lui-même (auto-hébergée, aucun service tiers appelé à chaque visite) 
    (`GEOIPUPDATE_ACCOUNT_ID`, `GEOIPUPDATE_LICENSE_KEY`).
 3. Au premier démarrage, le healthcheck attend automatiquement la fin du
    téléchargement avant de démarrer Caddy :
+
    ```bash
    docker compose up -d geoipupdate
    docker compose up -d --build
    ```
+
    Les démarrages suivants n'ont pas besoin de cette étape séparée — la
    base reste sur le volume `geoip_data` et se rafraîchit automatiquement
    toutes les 72 h.
@@ -267,14 +350,35 @@ commentaire au-dessus du bloc `@geo_ci` existant.
 ## Mises à jour
 
 ```bash
+cd /opt/nura/medusa
 git pull
-docker compose up -d --build
+bash scripts/vps-preflight.sh
+./scripts/vps-deploy.sh
 ```
+
+Le script ne bascule les conteneurs qu'après une construction réussie. Les
+images applicatives courantes sont conservées sous le tag `previous` avant la
+mise à jour. Les migrations doivent rester rétrocompatibles selon le modèle
+expand-contract : le rollback applicatif ne revient pas sur le schéma SQL.
+
+### Rollback applicatif
+
+```bash
+ROLLBACK_CONFIRM=application-only ./scripts/vps-rollback.sh
+curl --fail https://<BACKEND_DOMAIN>/health
+curl --fail https://<STOREFRONT_DOMAIN>/
+```
+
+Après le rollback, vérifie aussi manuellement une connexion admin et un passage
+de commande en environnement de test. Si une migration destructive a été
+livrée, restaure une sauvegarde validée dans une base isolée avant toute action
+sur la base de production.
 
 ## Sauvegardes
 
 Les sauvegardes sont chiffrées en AES-256 et conservées 30 jours par défaut.
 Exporte la clé indiquée dans `.env` sans la passer en argument de commande :
+
 ```bash
 export BACKUP_ENCRYPTION_KEY='valeur-de-.env'
 ./scripts/backup-postgres.sh
@@ -290,11 +394,48 @@ RESTORE_CONFIRM=medusa ./scripts/restore-postgres.sh backups/medusa-TIMESTAMP.du
 
 Teste une restauration au moins une fois par trimestre.
 
+Le dépôt fournit un timer systemd quotidien pour une installation dans
+`/opt/nura/medusa` :
+
+```bash
+sudo install -d -m 700 /var/backups/nura
+sudo install -d -m 700 /etc/nura
+sudo install -m 600 /dev/null /etc/nura/backup-encryption-key
+sudoedit /etc/nura/backup-encryption-key
+sudo install -m 644 deploy/systemd/nura-backup.service /etc/systemd/system/
+sudo install -m 644 deploy/systemd/nura-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now nura-backup.timer
+sudo systemctl start nura-backup.service
+sudo systemctl status nura-backup.service
+sudo systemctl list-timers nura-backup.timer
+```
+
+Colle uniquement la valeur de `BACKUP_ENCRYPTION_KEY` dans le fichier ouvert
+par `sudoedit`, sans le nom de variable ni guillemets. Systemd la présente au
+script comme un credential temporaire, sans charger le `.env` complet dans
+l'environnement du service. Chaque archive est déchiffrée et inspectée avec
+`pg_restore --list` avant d'être acceptée, puis accompagnée d'un checksum SHA-256.
+
+Une sauvegarde présente sur le même VPS ne protège pas d'une perte du serveur.
+Ajoute une réplication chiffrée vers un bucket privé ou active les snapshots
+automatiques de l'hébergeur avec une rétention indépendante.
+
+PostgreSQL et le bucket S3/R2 sont les sources de vérité à sauvegarder. Redis
+ne contient que du cache et de la coordination, Meilisearch est reconstruit
+depuis PostgreSQL, et les certificats Caddy sont réémis automatiquement. Leurs
+volumes accélèrent une reprise mais ne contiennent pas de données métier uniques.
+
 ## Médias persistants
 
 Le backend exige en production un bucket compatible S3. Configure
 `S3_FILE_URL`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION`,
 `S3_BUCKET` et, pour un service compatible tel que R2, `S3_ENDPOINT`.
+
+## Audit des dépendances
+
+`npm run security:audit` bloque tout nouvel avis de sécurité élevé ou critique
+dans les dépendances de production. Aucune exception n'est autorisée.
 
 ## Supervision
 
