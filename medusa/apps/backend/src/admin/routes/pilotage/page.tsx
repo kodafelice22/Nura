@@ -20,7 +20,6 @@ import {
   toast,
 } from "@medusajs/ui"
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
 import { adminFetch } from "../../lib/api"
 
 type Order = {
@@ -140,18 +139,18 @@ const Metric = ({
 )
 
 const QuickLink = ({
-  to,
+  href,
   title,
   description,
   icon: Icon,
 }: {
-  to: string
+  href: string
   title: string
   description: string
   icon: React.ComponentType<{ className?: string }>
 }) => (
-  <Link
-    to={to}
+  <a
+    href={href}
     className="group flex min-h-[76px] items-center gap-3 rounded-md border border-ui-border-base bg-ui-bg-base p-3 outline-none transition-colors hover:bg-ui-bg-subtle focus-visible:shadow-borders-focus"
   >
     <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-ui-bg-subtle text-ui-fg-subtle transition-colors group-hover:bg-[#b58a45]/10 group-hover:text-[#8f682c]">
@@ -169,7 +168,7 @@ const QuickLink = ({
       className="size-4 shrink-0 text-ui-fg-muted transition-transform group-hover:translate-x-0.5"
       aria-hidden="true"
     />
-  </Link>
+  </a>
 )
 
 const PilotagePage = () => {
@@ -332,7 +331,7 @@ const PilotagePage = () => {
               </Text>
             </div>
             <Button asChild variant="transparent" size="small">
-              <Link to="/orders">Tout afficher</Link>
+              <a href="/app/orders">Tout afficher</a>
             </Button>
           </div>
 
@@ -345,9 +344,9 @@ const PilotagePage = () => {
           ) : data.orders.length > 0 ? (
             <div className="divide-y divide-ui-border-base">
               {data.orders.map((order) => (
-                <Link
+                <a
                   key={order.id}
-                  to={`/orders/${order.id}`}
+                  href={`/app/orders/${order.id}`}
                   className="flex items-center gap-4 px-5 py-3.5 outline-none transition-colors hover:bg-ui-bg-subtle focus-visible:shadow-borders-focus"
                 >
                   <div className="min-w-0 flex-1">
@@ -364,7 +363,7 @@ const PilotagePage = () => {
                   <Text size="small" weight="plus" className="hidden sm:block">
                     {formatAmount(order.total, order.currency_code)}
                   </Text>
-                </Link>
+                </a>
               ))}
             </div>
           ) : (
@@ -400,25 +399,25 @@ const PilotagePage = () => {
             </div>
             <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2 xl:grid-cols-1">
               <QuickLink
-                to="/products/create"
+                href="/app/products/create"
                 title="Ajouter un produit"
                 description="Créer une nouvelle référence"
                 icon={CubeSolid}
               />
               <QuickLink
-                to="/home-content"
+                href="/app/home-content"
                 title="Mettre à jour l'accueil"
                 description="Visuels, messages et sélections"
                 icon={Photo}
               />
               <QuickLink
-                to="/journal"
+                href="/app/journal"
                 title="Publier dans le Journal"
                 description="Créer un nouvel article"
                 icon={DocumentText}
               />
               <QuickLink
-                to="/site-settings"
+                href="/app/site-settings"
                 title="Réglages du site"
                 description="Coordonnées, légal et réassurance"
                 icon={BuildingStorefront}
