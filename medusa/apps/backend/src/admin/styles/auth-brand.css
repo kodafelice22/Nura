@@ -1,0 +1,72 @@
+/*
+ * Nura branding for the dashboard's signed-out pages: login (and its MFA
+ * step), invite and reset password. Medusa gives these pages no override, so
+ * this targets their shared layout: a full-viewport `min-h-dvh w-dvw` wrapper,
+ * used nowhere else in the dashboard, holding one column whose first child is
+ * the Medusa logo. Re-check that structure when upgrading @medusajs/dashboard:
+ * if it changes, the pages fall back to the stock Medusa look, still usable.
+ */
+
+#medusa .min-h-dvh.w-dvw {
+  color-scheme: light;
+  /* Headings carry no colour class and inherit body's, resolved from the
+     dark theme's variables before these overrides apply. */
+  color: var(--fg-base);
+  --bg-subtle: #F7F1E8;
+  --bg-base: #F7F1E8;
+  --bg-field: #FBF8F3;
+  --bg-field-hover: #FFFFFF;
+  --bg-field-component: #FBF8F3;
+  --bg-field-component-hover: #FFFFFF;
+  --bg-base-hover: #EFE5D8;
+  --bg-component: #FBF8F3;
+  --bg-component-hover: #EFE5D8;
+  --fg-base: #2F231B;
+  --fg-subtle: #6B5A4C;
+  --fg-muted: #6B5A4C;
+  --fg-interactive: #806747;
+  --fg-interactive-hover: #3A2A20;
+  --fg-on-inverted: #F7F1E8;
+  --border-base: #E7D3C0;
+  --border-interactive: #806747;
+  --borders-base: 0px 1px 2px 0px rgba(58, 42, 32, 0.08), 0px 0px 0px 1px #E7D3C0;
+  --borders-interactive-with-active: 0px 0px 0px 4px rgba(128, 103, 71, 0.2), 0px 0px 0px 1px #806747;
+  --button-inverted: #3A2A20;
+  --button-inverted-hover: #2F231B;
+  --button-inverted-pressed: #2F231B;
+  --buttons-inverted: 0px 0px 0px 1px #3A2A20;
+  --buttons-inverted-focus: 0px 0px 0px 1px #3A2A20, 0px 0px 0px 2px #F7F1E8, 0px 0px 0px 4px #806747;
+  /* Error and alert colours, deepened to stay legible on cream (AA). */
+  --fg-error: #B42318;
+  --border-error: #B42318;
+  --borders-error: 0px 0px 0px 1px #B42318, 0px 0px 0px 3px rgba(180, 35, 24, 0.15);
+  --tag-red-icon: #B42318;
+  --tag-green-icon: #2F7D5B;
+  --tag-orange-icon: #B45309;
+  --tag-neutral-icon: #6B5A4C;
+}
+
+/* Chrome paints autofilled fields in its own blue; keep the field colour. */
+#medusa .min-h-dvh.w-dvw input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset;
+  -webkit-text-fill-color: #2F231B;
+}
+
+#medusa .min-h-dvh.w-dvw > div > :first-child {
+  display: none;
+}
+
+/* The wordmark, drawn the way the storefront header draws it. */
+#medusa .min-h-dvh.w-dvw > div::before {
+  content: "Nura";
+  display: block;
+  margin-bottom: 1.75rem;
+  padding-left: 0.3em;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #3A2A20;
+}
