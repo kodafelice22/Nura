@@ -1,7 +1,12 @@
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { test } from "node:test"
-import { collectAdvisories, evaluate, validateExceptions } from "./audit-gate.mjs"
+import {
+  collectAdvisories,
+  evaluate,
+  isAuditPayload,
+  validateExceptions,
+} from "./audit-gate.mjs"
 
 const advisory = (overrides = {}) => ({
   source: 1,
@@ -35,6 +40,22 @@ test("collects only high/critical root-cause advisories, once", () => {
   const found = collectAdvisories(audit(advisory(), advisory()))
 
   assert.deepEqual(found.map((item) => item.id), ["GHSA-vfj7-8cjw-p6xm"])
+})
+
+test("accepts only npm audit v2 payloads with vulnerabilities and metadata", () => {
+  assert.equal(
+    isAuditPayload({
+      auditReportVersion: 2,
+      vulnerabilities: {},
+      metadata: {},
+    }),
+    true
+  )
+  assert.equal(isAuditPayload({}), false)
+  assert.equal(
+    isAuditPayload({ auditReportVersion: 2, vulnerabilities: {} }),
+    false
+  )
 })
 
 test("fails when an advisory has no exception", () => {

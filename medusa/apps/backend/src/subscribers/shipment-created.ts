@@ -1,6 +1,12 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
-import { getOrderAccessUrl, renderButton, renderEmailLayout } from "../lib/email-templates"
+import {
+  getOrderAccessUrl,
+  renderButton,
+  renderEmailLayout,
+  toSafeWebUrl,
+} from "../lib/email-templates"
+import { escapeHtml } from "../lib/escape-html"
 import { sendEmailNotificationWorkflow } from "../workflows/send-email-notification"
 
 type ShipmentCreatedEvent = {
@@ -45,10 +51,11 @@ export default async function shipmentCreatedHandler({
     (label) => label?.tracking_number || label?.tracking_url
   )
   const orderUrl = getOrderAccessUrl(order.id)
-  const trackingHtml = trackingLabel?.tracking_url
-    ? renderButton(trackingLabel.tracking_url, "Suivre mon colis")
+  const trackingUrl = toSafeWebUrl(trackingLabel?.tracking_url)
+  const trackingHtml = trackingUrl
+    ? renderButton(trackingUrl, "Suivre mon colis")
     : trackingLabel?.tracking_number
-      ? `<p style="font-size:14px;line-height:1.6;">Numéro de suivi : <strong>${trackingLabel.tracking_number}</strong></p>`
+      ? `<p style="font-size:14px;line-height:1.6;">Numéro de suivi : <strong>${escapeHtml(trackingLabel.tracking_number)}</strong></p>`
       : ""
 
   await sendEmailNotificationWorkflow(container).run({

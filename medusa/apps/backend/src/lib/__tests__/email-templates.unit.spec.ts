@@ -26,6 +26,16 @@ describe("email-templates", () => {
       expect(html).toContain('href="https://nura-paris.com/reset"')
       expect(html).toContain("Réinitialiser")
     })
+
+    it("rejects unsafe URLs and escapes the label", () => {
+      expect(() => renderButton("javascript:alert(1)", "Suivre")).toThrow(
+        "absolute HTTP(S) URL"
+      )
+
+      expect(renderButton("https://nura-paris.com", "<Suivre>")).toContain(
+        "&lt;Suivre&gt;"
+      )
+    })
   })
 
   describe("getStorefrontUrl", () => {

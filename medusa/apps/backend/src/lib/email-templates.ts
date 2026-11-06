@@ -1,5 +1,6 @@
 import { createOrderAccessToken } from "./order-access-token"
 import { MedusaError } from "@medusajs/framework/utils"
+import { escapeHtml } from "./escape-html"
 
 // Shared HTML wrapper for all transactional emails sent via the
 // resend-notification provider, so order confirmations, password resets and
@@ -21,11 +22,43 @@ export function renderEmailLayout(bodyHtml: string) {
   `
 }
 
+export function toSafeWebUrl(value: string | null | undefined) {
+  if (!value) {
+    return null
+  }
+
+  try {
+    const url = new URL(value)
+
+    if (
+      (url.protocol !== "https:" && url.protocol !== "http:") ||
+      !url.hostname ||
+      url.username ||
+      url.password
+    ) {
+      return null
+    }
+
+    return url.href
+  } catch {
+    return null
+  }
+}
+
 export function renderButton(href: string, label: string) {
+  const safeHref = toSafeWebUrl(href)
+
+  if (!safeHref) {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      "Email button URL must be an absolute HTTP(S) URL."
+    )
+  }
+
   return `
     <p style="text-align:center;margin:24px 0;">
-      <a href="${href}" style="display:inline-block;background-color:#3A2A20;color:#FBF8F3;text-decoration:none;padding:12px 24px;text-transform:uppercase;letter-spacing:0.12em;font-size:12px;">
-        ${label}
+      <a href="${escapeHtml(safeHref)}" style="display:inline-block;background-color:#3A2A20;color:#FBF8F3;text-decoration:none;padding:12px 24px;text-transform:uppercase;letter-spacing:0.12em;font-size:12px;">
+        ${escapeHtml(label)}
       </a>
     </p>
   `

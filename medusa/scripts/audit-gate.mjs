@@ -14,6 +14,15 @@ import { fileURLToPath } from "node:url"
 const BLOCKING = new Set(["high", "critical"])
 const REQUIRED = ["id", "package", "range", "reason", "exposure", "reviewer", "expires", "removeWhen"]
 
+export const isAuditPayload = (audit) =>
+  audit?.auditReportVersion === 2 &&
+  audit.vulnerabilities !== null &&
+  typeof audit.vulnerabilities === "object" &&
+  !Array.isArray(audit.vulnerabilities) &&
+  audit.metadata !== null &&
+  typeof audit.metadata === "object" &&
+  !Array.isArray(audit.metadata)
+
 export const collectAdvisories = (audit) => {
   const found = new Map()
 
@@ -107,6 +116,11 @@ const main = () => {
 
   if (audit.error) {
     console.error(`audit-gate: npm audit failed (${audit.error.code ?? "error"}) — failing closed.`)
+    return 2
+  }
+
+  if (!isAuditPayload(audit)) {
+    console.error("audit-gate: npm audit returned an unexpected JSON payload — failing closed.")
     return 2
   }
 

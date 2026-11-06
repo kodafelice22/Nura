@@ -7,6 +7,9 @@ import React, { useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
 import CountrySelect from "../country-select"
 
+const whatsappOrderUpdatesEnabled =
+  process.env.NEXT_PUBLIC_WHATSAPP_ORDER_UPDATES_ENABLED === "true"
+
 const ShippingAddress = ({
   customer,
   cart,
@@ -219,15 +222,17 @@ const ShippingAddress = ({
           data-testid="shipping-phone-input"
         />
       </div>
-      <div className="mb-4">
-        <Checkbox
-          label="Recevoir le suivi de ma commande sur WhatsApp"
-          name="whatsapp_opt_in"
-          checked={whatsappOptIn}
-          onChange={() => setWhatsappOptIn((optIn) => !optIn)}
-          data-testid="whatsapp-opt-in-checkbox"
-        />
-      </div>
+      {whatsappOrderUpdatesEnabled && (
+        <div className="mb-4">
+          <Checkbox
+            label="Recevoir le suivi de ma commande sur WhatsApp"
+            name="whatsapp_opt_in"
+            checked={whatsappOptIn}
+            onChange={() => setWhatsappOptIn((optIn) => !optIn)}
+            data-testid="whatsapp-opt-in-checkbox"
+          />
+        </div>
+      )}
     </>
   )
 }

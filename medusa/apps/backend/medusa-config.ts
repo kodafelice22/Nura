@@ -46,6 +46,10 @@ if (isProduction) {
 }
 
 requireCompleteConfig('Stripe', ['STRIPE_API_KEY', 'STRIPE_WEBHOOK_SECRET'])
+requireCompleteConfig('WhatsApp', [
+  'WHATSAPP_ACCESS_TOKEN',
+  'WHATSAPP_PHONE_NUMBER_ID',
+])
 requireCompleteConfig('Jèko', [
   'JEKO_API_KEY',
   'JEKO_API_KEY_ID',

@@ -227,11 +227,17 @@ if [[ "$mode" != "bootstrap" && "$(env_value MEDUSA_BOOTSTRAP_MODE)" == "true" ]
   fail "MEDUSA_BOOTSTRAP_MODE must not be enabled for preview or release"
 fi
 
-stripe_ready=false
-if [[ -n "$(env_value STRIPE_API_KEY)" &&
-      -n "$(env_value STRIPE_WEBHOOK_SECRET)" &&
-      -n "$(env_value NEXT_PUBLIC_STRIPE_KEY)" ]]; then
-  stripe_ready=true
+whatsapp_access_token="$(env_value WHATSAPP_ACCESS_TOKEN)"
+whatsapp_phone_number_id="$(env_value WHATSAPP_PHONE_NUMBER_ID)"
+whatsapp_enabled="$(env_value NEXT_PUBLIC_WHATSAPP_ORDER_UPDATES_ENABLED)"
+if [[ -n "$whatsapp_access_token" && -z "$whatsapp_phone_number_id" ]] ||
+   [[ -z "$whatsapp_access_token" && -n "$whatsapp_phone_number_id" ]]; then
+  fail "WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID must be configured together"
+fi
+if [[ -n "$whatsapp_enabled" && "$whatsapp_enabled" != "true" && "$whatsapp_enabled" != "false" ]]; then
+  fail "NEXT_PUBLIC_WHATSAPP_ORDER_UPDATES_ENABLED must be true or false"
+elif [[ "$whatsapp_enabled" == "true" && (-z "$whatsapp_access_token" || -z "$whatsapp_phone_number_id") ]]; then
+  fail "NEXT_PUBLIC_WHATSAPP_ORDER_UPDATES_ENABLED requires complete WhatsApp credentials"
 fi
 
 jeko_ready=false

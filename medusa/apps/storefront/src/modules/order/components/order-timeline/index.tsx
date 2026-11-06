@@ -1,4 +1,5 @@
 import { HttpTypes } from "@medusajs/types"
+import { toSafeExternalUrl } from "@lib/util/safe-href"
 import { clx } from "@modules/common/components/ui"
 
 // Label tracking fields are allowed by the backend middleware but missing from the type.
@@ -69,6 +70,10 @@ const OrderTimeline = ({ order }: { order: HttpTypes.StoreOrder }) => {
     reached >= 2
       ? fulfillments
           .flatMap((fulfillment) => fulfillment.labels ?? [])
+          .map((label) => ({
+            ...label,
+            tracking_url: toSafeExternalUrl(label.tracking_url),
+          }))
           .filter((label) => label.tracking_url || label.tracking_number)
       : []
 
