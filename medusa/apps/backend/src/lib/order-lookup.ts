@@ -14,33 +14,79 @@ export function parseOrderNumber(input: unknown): number | null {
   return value > 0 ? value : null
 }
 
-type FailureLimiterOptions = {
+type AttemptLimiterOptions = {
   max: number
   windowMs: number
+  maxKeys?: number
+  sweepIntervalMs?: number
 }
 
-// shortcut: failures are counted in this process's memory, so the limit is
+// shortcut: attempts are counted in this process's memory, so the limit is
 // per backend instance and resets on restart; move it to Redis if the
 // backend ever runs on more than one instance.
-export function createFailureLimiter({ max, windowMs }: FailureLimiterOptions) {
-  const failures = new Map<string, number[]>()
+export function createAttemptLimiter({
+  max,
+  windowMs,
+  maxKeys = 10_000,
+  sweepIntervalMs = 60_000,
+}: AttemptLimiterOptions) {
+  const attempts = new Map<string, number[]>()
+  let lastSweep = -Infinity
 
   const recent = (key: string, now: number) =>
-    (failures.get(key) ?? []).filter((at) => now - at < windowMs)
+    (attempts.get(key) ?? []).filter((at) => now - at < windowMs)
+
+  // Bounded cost: a full sweep runs at most once per interval, however many
+  // distinct keys arrive.
+  const sweep = (now: number) => {
+    if (now - lastSweep < sweepIntervalMs) {
+      return
+    }
+
+    lastSweep = now
+    for (const key of attempts.keys()) {
+      if (!recent(key, now).length) {
+        attempts.delete(key)
+      }
+    }
+  }
 
   return {
-    isBlocked(key: string, now = Date.now()) {
-      return recent(key, now).length >= max
-    },
-    recordFailure(key: string, now = Date.now()) {
-      failures.set(key, [...recent(key, now), now])
+    /**
+     * Checks and reserves an attempt in one synchronous step, so concurrent
+     * requests cannot all pass the check before any of them is counted.
+     * When the table is full of live keys, new keys are refused rather than
+     * evicting the history of keys under attack.
+     */
+    tryAttempt(key: string, now = Date.now()) {
+      const current = recent(key, now)
 
-      if (failures.size > 10_000) {
-        for (const stored of failures.keys()) {
-          if (!recent(stored, now).length) {
-            failures.delete(stored)
-          }
+      if (current.length >= max) {
+        return false
+      }
+
+      if (!attempts.has(key) && attempts.size >= maxKeys) {
+        sweep(now)
+        if (attempts.size >= maxKeys) {
+          return false
         }
+      }
+
+      attempts.set(key, [...current, now])
+      return true
+    },
+    /** Releases an attempt reserved at `at` that turned out not to be a failure. */
+    release(key: string, at: number) {
+      const stored = attempts.get(key)
+      const index = stored?.lastIndexOf(at) ?? -1
+
+      if (!stored || index === -1) {
+        return
+      }
+
+      stored.splice(index, 1)
+      if (!stored.length) {
+        attempts.delete(key)
       }
     },
   }

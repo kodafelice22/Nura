@@ -1,7 +1,7 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import {
-  createFailureLimiter,
+  createAttemptLimiter,
   parseOrderNumber,
 } from "../../../lib/order-lookup"
 
@@ -15,11 +15,12 @@ const WINDOW_MS = 15 * 60 * 1000
 // The request comes from the storefront server, so the client's IP is not
 // visible here: failures are limited per order number (guessing an email for
 // a known order) and per email (walking order numbers with someone's email).
-const failuresByOrder = createFailureLimiter({ max: 5, windowMs: WINDOW_MS })
-const failuresByEmail = createFailureLimiter({ max: 10, windowMs: WINDOW_MS })
+const attemptsByOrder = createAttemptLimiter({ max: 5, windowMs: WINDOW_MS })
+const attemptsByEmail = createAttemptLimiter({ max: 10, windowMs: WINDOW_MS })
 
 // Same answer for an unknown order and a wrong email, so neither leaks.
 const NOT_FOUND = "Aucune commande ne correspond à ce numéro et à cet email."
+const TOO_MANY = "Trop de tentatives. Réessayez dans 15 minutes."
 
 export async function POST(
   req: MedusaRequest<OrderLookupRequestBody>,
@@ -38,29 +39,42 @@ export async function POST(
   }
 
   const orderKey = String(displayId)
+  const now = Date.now()
 
-  if (failuresByOrder.isBlocked(orderKey) || failuresByEmail.isBlocked(email)) {
-    return res.status(429).json({
-      message: "Trop de tentatives. Réessayez dans 15 minutes.",
-    })
+  // Reserved before the query and kept as a failure unless the lookup
+  // succeeds, so concurrent guesses are all counted.
+  if (!attemptsByOrder.tryAttempt(orderKey, now)) {
+    return res.status(429).json({ message: TOO_MANY })
+  }
+  if (!attemptsByEmail.tryAttempt(email, now)) {
+    attemptsByOrder.release(orderKey, now)
+    return res.status(429).json({ message: TOO_MANY })
+  }
+  const release = () => {
+    attemptsByOrder.release(orderKey, now)
+    attemptsByEmail.release(email, now)
   }
 
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-  const {
-    data: [order],
-  } = await query.graph({
-    entity: "order",
-    fields: ["id", "email"],
-    // Query's generated filter types declare display_id as a string.
-    filters: { display_id: orderKey, is_draft_order: false },
-  })
+  let order: { id: string; email?: string | null } | undefined
+  try {
+    const { data } = await query.graph({
+      entity: "order",
+      fields: ["id", "email"],
+      // Query's generated filter types declare display_id as a string.
+      filters: { display_id: orderKey, is_draft_order: false },
+    })
+    order = data[0]
+  } catch (error) {
+    release()
+    throw error
+  }
 
   if (!order || order.email?.toLowerCase() !== email) {
-    failuresByOrder.recordFailure(orderKey)
-    failuresByEmail.recordFailure(email)
     return res.status(404).json({ message: NOT_FOUND })
   }
 
+  release()
   // The storefront signs its own order-access cookie from this id, as it does
   // after checkout.
   return res.status(200).json({ order_id: order.id })

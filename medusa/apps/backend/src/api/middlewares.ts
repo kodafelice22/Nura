@@ -17,6 +17,17 @@ const authorizeOrderRead = async (
   const orderId = req.params.id
   const customerId = (req as AuthenticatedMedusaRequest).auth_context?.actor_id
 
+  // Checked first so a signed-in customer can still open a guest order found
+  // through the order lookup.
+  if (
+    verifyOrderAccessToken(
+      orderId,
+      req.headers["x-order-access-token"] as string | undefined
+    )
+  ) {
+    return next()
+  }
+
   if (customerId) {
     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const {
@@ -30,13 +41,6 @@ const authorizeOrderRead = async (
     if (order?.customer_id === customerId) {
       return next()
     }
-  } else if (
-    verifyOrderAccessToken(
-      orderId,
-      req.headers["x-order-access-token"] as string | undefined
-    )
-  ) {
-    return next()
   }
 
   return res.status(404).json({ message: "Order not found" })

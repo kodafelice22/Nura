@@ -23,7 +23,7 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
   const searchParams = useSearchParams()
   const notReady =
     !cart ||
-    !cart.shipping_address ||
+    !cart.shipping_address?.phone?.trim() ||
     !cart.billing_address ||
     !cart.email ||
     (cart.shipping_methods?.length ?? 0) < 1
@@ -124,7 +124,10 @@ const JekoPaymentButton = ({
       >
         Commander et payer avec Jèko
       </Button>
-      <ErrorMessage error={errorMessage} data-testid="jeko-payment-error-message" />
+      <ErrorMessage
+        error={errorMessage}
+        data-testid="jeko-payment-error-message"
+      />
     </>
   )
 }
