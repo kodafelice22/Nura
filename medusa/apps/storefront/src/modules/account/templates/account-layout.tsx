@@ -20,17 +20,37 @@ const AccountLayout = async ({ customer, children }: AccountLayoutProps) => {
   const messages = blocks.account_messages
 
   return (
-    <div className="content-container py-10 small:py-16" data-testid="account-page">
+    <div
+      className="content-container py-10 small:py-16"
+      data-testid="account-page"
+    >
       {customer && (
         <div className="mb-10 flex flex-col gap-3 small:mb-14">
           <span className="eyebrow">Mon compte</span>
-          <h1 className="font-serif text-4xl text-brown small:text-5xl">
+          <h1
+            className="font-serif text-4xl text-brown small:text-5xl"
+            data-testid="welcome-message"
+            data-value={customer.first_name}
+          >
             Bonjour {customer.first_name}
           </h1>
+          <p
+            className="text-sm text-ui-fg-subtle"
+            data-testid="customer-email"
+            data-value={customer.email}
+          >
+            {customer.email}
+          </p>
         </div>
       )}
 
-      <div className={customer ? "grid grid-cols-1 gap-10 small:grid-cols-[220px_1fr] small:gap-16" : "mx-auto max-w-md"}>
+      <div
+        className={
+          customer
+            ? "grid grid-cols-1 gap-10 small:grid-cols-[220px_1fr] small:gap-16"
+            : "mx-auto max-w-5xl"
+        }
+      >
         {customer && <AccountNav customer={customer} />}
         <div className="min-w-0 flex-1">{children}</div>
       </div>

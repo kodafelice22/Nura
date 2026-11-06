@@ -109,6 +109,31 @@ export const listOrders = async (
     .catch((err) => medusaError(err))
 }
 
+/** The customer's order count and most recent order id, in one request. */
+export const getOrdersSummary = async () => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const next = {
+    ...(await getCacheOptions("orders")),
+  }
+
+  return sdk.client
+    .fetch<HttpTypes.StoreOrderListResponse>(`/store/orders`, {
+      method: "GET",
+      query: { limit: 1, order: "-created_at", fields: "id" },
+      headers,
+      next,
+      cache: "force-cache",
+    })
+    .then(({ count, orders }) => ({
+      count,
+      latestOrderId: orders[0]?.id ?? null,
+    }))
+    .catch((err) => medusaError(err))
+}
+
 export const createTransferRequest = async (
   state: {
     success: boolean

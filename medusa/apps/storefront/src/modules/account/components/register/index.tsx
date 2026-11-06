@@ -1,41 +1,40 @@
 "use client"
 
-import { useActionState } from "react"
+import { FormEvent, startTransition, useActionState } from "react"
 import { AccountMessagesBlock } from "@lib/data/home-content"
 import Input from "@modules/common/components/input"
-import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
-import { SubmitButton } from "@modules/checkout/components/submit-button"
 import EmailNotice from "@modules/common/components/email-notice"
 import InlineText from "@modules/common/components/inline-text"
+import { Button } from "@modules/common/components/ui"
 import { signup } from "@lib/data/customer"
-
-type Props = {
-  setCurrentView: (view: LOGIN_VIEW) => void
-  messages?: AccountMessagesBlock
-}
 
 const DEFAULT_CONSENT_TEXT =
   "En créant un compte, vous acceptez la [politique de confidentialité](/confidentialite) et les [conditions générales de vente](/cgv) de Nura."
 
-const Register = ({ setCurrentView, messages }: Props) => {
-  const [message, formAction] = useActionState(signup, null)
+const Register = ({ messages }: { messages?: AccountMessagesBlock }) => {
+  const [message, dispatch, isPending] = useActionState(signup, null)
+
+  // Dispatching from onSubmit rather than <form action> keeps what was typed
+  // when sign-up fails: React 19 resets forms that use an action prop.
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+    startTransition(() => dispatch(formData))
+  }
 
   return (
-    <div
-      className="max-w-sm flex flex-col items-center"
-      data-testid="register-page"
-    >
-      <h1 className="text-large-semi uppercase mb-6">
+    <div className="flex w-full flex-col" data-testid="register-page">
+      <h1 className="mb-3 font-serif text-3xl text-brown small:text-4xl">
         {messages?.register_title || "Rejoindre Nura"}
       </h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-4">
+      <p className="mb-8 text-sm text-ui-fg-subtle">
         {messages?.register_text ||
           "Créez votre compte Nura et profitez d'une expérience d'achat enrichie."}
       </p>
       {message?.state === "verification_required" && (
         <div
-          className="w-full mb-4 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
+          className="mb-6 w-full border border-nude bg-bg p-4 text-sm text-brown"
           data-testid="register-verification-message"
         >
           <EmailNotice
@@ -47,22 +46,24 @@ const Register = ({ setCurrentView, messages }: Props) => {
           />
         </div>
       )}
-      <form className="w-full flex flex-col" action={formAction}>
-        <div className="flex flex-col w-full gap-y-2">
-          <Input
-            label="Prénom"
-            name="first_name"
-            required
-            autoComplete="given-name"
-            data-testid="first-name-input"
-          />
-          <Input
-            label="Nom"
-            name="last_name"
-            required
-            autoComplete="family-name"
-            data-testid="last-name-input"
-          />
+      <form className="flex w-full flex-col" onSubmit={onSubmit}>
+        <div className="flex w-full flex-col gap-y-2">
+          <div className="grid grid-cols-1 gap-2 xsmall:grid-cols-2">
+            <Input
+              label="Prénom"
+              name="first_name"
+              required
+              autoComplete="given-name"
+              data-testid="first-name-input"
+            />
+            <Input
+              label="Nom"
+              name="last_name"
+              required
+              autoComplete="family-name"
+              data-testid="last-name-input"
+            />
+          </div>
           <Input
             label="Email"
             name="email"
@@ -91,26 +92,21 @@ const Register = ({ setCurrentView, messages }: Props) => {
           error={message?.state === "error" ? message.error : null}
           data-testid="register-error"
         />
-        <span className="text-center text-ui-fg-base text-small-regular mt-6">
+        <span className="mt-6 text-small-regular text-ui-fg-subtle">
           <InlineText
             text={messages?.register_consent_text || DEFAULT_CONSENT_TEXT}
             className="underline"
           />
         </span>
-        <SubmitButton className="w-full mt-6" data-testid="register-button">
-          Créer mon compte
-        </SubmitButton>
-      </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
-        Déjà membre ?{" "}
-        <button
-          onClick={() => setCurrentView(LOGIN_VIEW.SIGN_IN)}
-          className="underline"
+        <Button
+          type="submit"
+          isLoading={isPending}
+          className="mt-6 w-full"
+          data-testid="register-button"
         >
-          Se connecter
-        </button>
-        .
-      </span>
+          Créer mon compte
+        </Button>
+      </form>
     </div>
   )
 }
