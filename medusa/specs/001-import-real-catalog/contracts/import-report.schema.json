@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nura.example/schemas/import-report.schema.json",
+  "title": "Nura Catalogue Import Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "releaseId",
+    "fingerprint",
+    "mode",
+    "status",
+    "initiatedBy",
+    "startedAt",
+    "finishedAt",
+    "counts",
+    "errors"
+  ],
+  "properties": {
+    "releaseId": { "type": "string", "minLength": 1 },
+    "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "mode": { "enum": ["validate", "publish", "rollback"] },
+    "status": {
+      "enum": ["validated", "rejected", "published", "failed", "rolled_back"]
+    },
+    "initiatedBy": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "previousReleaseId": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "null" }
+      ]
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "submitted",
+        "accepted",
+        "rejected",
+        "created",
+        "updated",
+        "unpublished",
+        "unchanged"
+      ],
+      "properties": {
+        "submitted": { "type": "integer", "minimum": 0 },
+        "accepted": { "type": "integer", "minimum": 0 },
+        "rejected": { "type": "integer", "minimum": 0 },
+        "created": { "type": "integer", "minimum": 0 },
+        "updated": { "type": "integer", "minimum": 0 },
+        "unpublished": { "type": "integer", "minimum": 0 },
+        "unchanged": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "code", "message"],
+        "properties": {
+          "path": { "type": "string" },
+          "code": { "type": "string", "minLength": 1 },
+          "message": { "type": "string", "minLength": 1 },
+          "sourceId": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "null" }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
