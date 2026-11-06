@@ -1,6 +1,6 @@
 import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { QuestionMarkCircle } from "@medusajs/icons"
-import { Button, Container, Heading, Text, Textarea, toast } from "@medusajs/ui"
+import { Button, Container, Heading, Input, Text, Textarea, toast } from "@medusajs/ui"
 import { useEffect, useState } from "react"
 import RepeatableField from "../../components/repeatable-field"
 import { adminFetch } from "../../lib/api"
@@ -10,7 +10,7 @@ type Block = {
   data: { items?: FaqItem[] }
 }
 
-type FaqItem = { question: string; answer: string }
+type FaqItem = { question: string; answer: string; category?: string }
 
 const FaqPage = () => {
   const [items, setItems] = useState<FaqItem[]>([])
@@ -64,18 +64,26 @@ const FaqPage = () => {
       <div>
         <Heading level="h1">FAQ</Heading>
         <Text size="small" className="text-ui-fg-subtle">
-          Les questions fréquentes affichées sur la page /faq, dans l'ordre.
+          Les questions fréquentes affichées sur la page /faq, dans l'ordre. Une
+          catégorie facultative regroupe les questions : les catégories
+          apparaissent dans l'ordre de leur première question, et les questions
+          sans catégorie forment un groupe « Autres questions ».
         </Text>
       </div>
 
       <RepeatableField
         label="Questions"
         items={items}
-        empty={{ question: "", answer: "" }}
+        empty={{ question: "", answer: "", category: "" }}
         onChange={setItems}
         addLabel="Ajouter une question"
         renderItem={(item, update) => (
           <div className="flex flex-col gap-y-2">
+            <Input
+              value={item.category ?? ""}
+              placeholder="Catégorie (facultatif), ex. Livraison"
+              onChange={(event) => update({ category: event.target.value })}
+            />
             <Textarea
               rows={1}
               value={item.question}

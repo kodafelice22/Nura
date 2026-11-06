@@ -7,6 +7,7 @@ import { listRegions } from "@lib/data/regions"
 import CollectionTemplate from "@modules/collections/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
+import { parseProductFilters } from "@lib/util/product-filters"
 import { getLocalizedAlternates } from "@lib/util/seo"
 
 type Props = {
@@ -54,6 +55,7 @@ export default async function CollectionPage(props: Props) {
   const params = await props.params
   const { sortBy, page } = searchParams
   const optionValueIds = parseOptionValueIds(searchParams)
+  const filters = parseProductFilters(searchParams)
 
   const collection = await getCollectionByHandle(params.handle).then(
     (collection) => collection
@@ -72,6 +74,7 @@ export default async function CollectionPage(props: Props) {
       sortBy={sortBy}
       countryCode={params.countryCode}
       optionValueIds={optionValueIds}
+      filters={filters}
       blurbTemplate={blocks.collections_page?.collection_blurb_template}
     />
   )

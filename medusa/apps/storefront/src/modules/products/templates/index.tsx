@@ -1,9 +1,11 @@
 import React, { Suspense } from "react"
 
 import { getHomeContent } from "@lib/data/home-content"
+import { listProductRoutines } from "@lib/data/routines"
 import Breadcrumbs from "@modules/common/components/breadcrumbs"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
+import ProductRoutine from "@modules/products/components/product-routine"
 import ProductReassurance from "@modules/products/components/product-reassurance"
 import ProductReviews from "@modules/products/components/product-reviews"
 import ProductTabs from "@modules/products/components/product-tabs"
@@ -34,7 +36,10 @@ const ProductTemplate = async ({
     return notFound()
   }
 
-  const { blocks, hidden } = await getHomeContent()
+  const [{ blocks, hidden }, routines] = await Promise.all([
+    getHomeContent(),
+    listProductRoutines(product.id),
+  ])
   const productExtras = hidden.includes("product_extras")
     ? null
     : blocks.product_extras
@@ -69,7 +74,11 @@ const ProductTemplate = async ({
               />
             }
           >
-            <ProductActionsWrapper id={product.id} region={region} />
+            <ProductActionsWrapper
+              id={product.id}
+              region={region}
+              stockAlertContent={productExtras}
+            />
           </Suspense>
           <ProductTabs product={product} content={productExtras} />
           {productExtras !== null && (
@@ -77,6 +86,11 @@ const ProductTemplate = async ({
           )}
         </div>
       </div>
+      {routines.length > 0 && (
+        <div className="content-container my-16 small:my-24">
+          <ProductRoutine routine={routines[0]} currentProductId={product.id} />
+        </div>
+      )}
       {productExtras !== null && (
         <>
           <div id="avis-produits" className="content-container my-16 scroll-mt-24 small:my-32">

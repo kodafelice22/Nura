@@ -179,31 +179,37 @@ const HOME_BLOCKS = [
       items: [
         {
           question: "Quels sont les délais et zones de livraison ?",
+          category: "Livraison",
           answer:
             "Nous livrons en France métropolitaine et en Côte d'Ivoire. Le délai indicatif est de 3 à 7 jours ouvrés. Les frais de livraison sont précisés avant la validation de votre commande.",
         },
         {
           question: "Comment suivre ma commande ?",
+          category: "Livraison",
           answer:
             "Un email de confirmation vous est envoyé dès la validation de votre commande. Vous pouvez ensuite suivre son statut depuis votre compte, rubrique « Commandes ».",
         },
         {
           question: "Quels moyens de paiement acceptez-vous ?",
+          category: "Paiement",
           answer:
             "En Europe, vous pouvez payer par carte bancaire (Stripe). En Côte d'Ivoire, le paiement mobile money (Wave, Orange Money, MTN, Moov, Djamo) est disponible via notre partenaire Jèko.",
         },
         {
           question: "Puis-je retourner un produit ?",
+          category: "Retours",
           answer:
             "Vous disposez d'un délai de 14 jours après réception pour exercer votre droit de rétractation. Les produits doivent être retournés neufs, non ouverts et dans leur emballage d'origine. Pour des raisons d'hygiène, les produits descellés (parfums, cosmétiques) ne peuvent pas être retournés.",
         },
         {
           question: "Les produits sont-ils testés sur les animaux ?",
+          category: "Produits",
           answer:
             "Non. Conformément à la réglementation européenne, aucun produit cosmétique Nura n'est testé sur les animaux, et nous ne le demandons pas à nos fournisseurs.",
         },
         {
           question: "Comment vous contacter ?",
+          category: "Contact",
           answer:
             "Vous pouvez nous écrire ou retrouver toutes nos coordonnées sur la page Contact.",
         },

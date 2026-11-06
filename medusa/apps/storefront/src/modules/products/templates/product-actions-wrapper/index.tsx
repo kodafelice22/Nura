@@ -1,6 +1,7 @@
 import { listProducts } from "@lib/data/products"
 import { retrieveCustomer } from "@lib/data/customer"
 import { listWishlist } from "@lib/data/wishlist"
+import { ProductExtrasBlock } from "@lib/data/home-content"
 import { HttpTypes } from "@medusajs/types"
 import ProductActions from "@modules/products/components/product-actions"
 
@@ -10,9 +11,11 @@ import ProductActions from "@modules/products/components/product-actions"
 export default async function ProductActionsWrapper({
   id,
   region,
+  stockAlertContent,
 }: {
   id: string
   region: HttpTypes.StoreRegion
+  stockAlertContent?: ProductExtrasBlock | null
 }) {
   const product = await listProducts({
     queryParams: { id: [id] },
@@ -33,6 +36,7 @@ export default async function ProductActionsWrapper({
       region={region}
       isLoggedIn={!!customer}
       isInWishlist={isInWishlist}
+      stockAlertContent={stockAlertContent}
     />
   )
 }

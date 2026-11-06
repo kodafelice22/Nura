@@ -200,6 +200,16 @@ modules.push({ resolve: './src/modules/review' })
 // home page (hero, campaign, curated products). Always registered.
 modules.push({ resolve: './src/modules/content' })
 
+// "Notify me when back in stock" requests from the product page. Always
+// registered — a simple internal data module; the email goes through the
+// notification module when a provider is configured.
+modules.push({ resolve: './src/modules/stock-alert' })
+
+// Editorial routines ("Parfumez. Hydratez. Sublimez."): ordered products with
+// usage steps, shown on product pages. Always registered — a simple internal
+// data module.
+modules.push({ resolve: './src/modules/routine' })
+
 // Product search (storefront search bar). Optional: only registered once
 // MEILISEARCH_HOST is set, so the backend keeps booting normally without a
 // Meilisearch instance running. Self-hosted — see docker-compose.yml.

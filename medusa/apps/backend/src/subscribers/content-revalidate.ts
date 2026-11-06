@@ -4,10 +4,12 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { getStorefrontUrl } from "../lib/email-templates"
 import { HOME_CONTENT_CHANGED_EVENT } from "../workflows/save-home-block"
 import { JOURNAL_CHANGED_EVENT } from "../workflows/manage-post"
+import { ROUTINES_CHANGED_EVENT } from "../workflows/manage-routine"
 
 const TAGS: Record<string, string> = {
   [HOME_CONTENT_CHANGED_EVENT]: "home-content",
   [JOURNAL_CHANGED_EVENT]: "journal",
+  [ROUTINES_CHANGED_EVENT]: "routines",
 }
 
 /**
@@ -61,5 +63,9 @@ export default async function contentRevalidateHandler({
 }
 
 export const config: SubscriberConfig = {
-  event: [HOME_CONTENT_CHANGED_EVENT, JOURNAL_CHANGED_EVENT],
+  event: [
+    HOME_CONTENT_CHANGED_EVENT,
+    JOURNAL_CHANGED_EVENT,
+    ROUTINES_CHANGED_EVENT,
+  ],
 }

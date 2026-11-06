@@ -2,6 +2,8 @@ import { Suspense } from "react"
 
 import { getHomeContent } from "@lib/data/home-content"
 import { listProductOptions } from "@lib/data/products"
+import { getRegion } from "@lib/data/regions"
+import { ProductFilters } from "@lib/util/product-filters"
 import { OptionValueIds } from "@lib/util/product-option-filters"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import RefinementList from "@modules/store/components/refinement-list"
@@ -14,17 +16,20 @@ const StoreTemplate = async ({
   page,
   countryCode,
   optionValueIds,
+  filters,
 }: {
   sortBy?: SortOptions
   page?: string
   countryCode: string
   optionValueIds?: OptionValueIds
+  filters?: ProductFilters
 }) => {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
-  const [options, { blocks }] = await Promise.all([
+  const [options, { blocks }, region] = await Promise.all([
     listProductOptions(),
     getHomeContent(),
+    getRegion(countryCode),
   ])
   const storePage = blocks.store_page
 
@@ -44,7 +49,11 @@ const StoreTemplate = async ({
         </p>
       </div>
 
-      <RefinementList sortBy={sort} options={options} />
+      <RefinementList
+        sortBy={sort}
+        options={options}
+        currencyCode={region?.currency_code}
+      />
 
       <Suspense fallback={<SkeletonProductGrid />}>
         <PaginatedProducts
@@ -52,6 +61,7 @@ const StoreTemplate = async ({
           page={pageNumber}
           countryCode={countryCode}
           optionValueIds={optionValueIds}
+          filters={filters}
           emptyText={storePage?.empty_state}
         />
       </Suspense>
