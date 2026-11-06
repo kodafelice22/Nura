@@ -240,6 +240,18 @@ elif [[ "$whatsapp_enabled" == "true" && (-z "$whatsapp_access_token" || -z "$wh
   fail "NEXT_PUBLIC_WHATSAPP_ORDER_UPDATES_ENABLED requires complete WhatsApp credentials"
 fi
 
+stock_alerts_enabled="$(env_value STOCK_ALERTS_ENABLED)"
+public_stock_alerts_enabled="$(env_value NEXT_PUBLIC_STOCK_ALERTS_ENABLED)"
+if [[ -n "$stock_alerts_enabled" && "$stock_alerts_enabled" != "true" && "$stock_alerts_enabled" != "false" ]]; then
+  fail "STOCK_ALERTS_ENABLED must be true or false"
+fi
+if [[ -n "$public_stock_alerts_enabled" && "$public_stock_alerts_enabled" != "true" && "$public_stock_alerts_enabled" != "false" ]]; then
+  fail "NEXT_PUBLIC_STOCK_ALERTS_ENABLED must be true or false"
+fi
+if [[ "$mode" == "release" && ("$stock_alerts_enabled" == "true" || "$public_stock_alerts_enabled" == "true") ]]; then
+  fail "Stock alerts must remain disabled until double opt-in and distributed abuse protection are enabled"
+fi
+
 jeko_ready=false
 if [[ -n "$(env_value JEKO_API_KEY)" &&
       -n "$(env_value JEKO_API_KEY_ID)" &&

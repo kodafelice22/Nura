@@ -18,7 +18,13 @@ type AttemptLimiterOptions = {
   max: number
   windowMs: number
   maxKeys?: number
+  overflowBuckets?: number
   sweepIntervalMs?: number
+}
+
+type OverflowAttempt = {
+  key: string
+  at: number
 }
 
 // shortcut: attempts are counted in this process's memory, so the limit is
@@ -28,9 +34,15 @@ export function createAttemptLimiter({
   max,
   windowMs,
   maxKeys = 10_000,
+  overflowBuckets = 1_024,
   sweepIntervalMs = 60_000,
 }: AttemptLimiterOptions) {
   const attempts = new Map<string, number[]>()
+  const overflow = new Map<number, OverflowAttempt[]>()
+  const overflowBucketCount = Math.max(
+    1,
+    Math.min(Math.floor(overflowBuckets), maxKeys)
+  )
   let lastSweep = -Infinity
 
   const recent = (key: string, now: number) =>
@@ -51,14 +63,56 @@ export function createAttemptLimiter({
     }
   }
 
+  const overflowBucket = (key: string) => {
+    let hash = 2_166_136_261
+    for (let index = 0; index < key.length; index += 1) {
+      hash ^= key.charCodeAt(index)
+      hash = Math.imul(hash, 16_777_619)
+    }
+    return (hash >>> 0) % overflowBucketCount
+  }
+
+  const recentOverflow = (bucket: number, now: number) => {
+    const current = (overflow.get(bucket) ?? []).filter(
+      ({ at }) => now - at < windowMs
+    )
+
+    if (current.length) {
+      overflow.set(bucket, current)
+    } else {
+      overflow.delete(bucket)
+    }
+
+    return current
+  }
+
+  const reserveOverflow = (key: string, now: number) => {
+    const bucket = overflowBucket(key)
+    const current = recentOverflow(bucket, now)
+
+    if (current.length >= max) {
+      return false
+    }
+
+    overflow.set(bucket, [...current, { key, at: now }])
+    return true
+  }
+
   return {
     /**
      * Checks and reserves an attempt in one synchronous step, so concurrent
      * requests cannot all pass the check before any of them is counted.
-     * When the table is full of live keys, new keys are refused rather than
-     * evicting the history of keys under attack.
+     * The exact-key table stays bounded. New keys overflow into fixed hash
+     * buckets, preserving active limits without globally locking new clients.
      */
     tryAttempt(key: string, now = Date.now()) {
+      const bucket = overflowBucket(key)
+      const overflowHistory = recentOverflow(bucket, now)
+
+      if (overflowHistory.some((attempt) => attempt.key === key)) {
+        return reserveOverflow(key, now)
+      }
+
       const current = recent(key, now)
 
       if (current.length >= max) {
@@ -68,7 +122,7 @@ export function createAttemptLimiter({
       if (!attempts.has(key) && attempts.size >= maxKeys) {
         sweep(now)
         if (attempts.size >= maxKeys) {
-          return false
+          return reserveOverflow(key, now)
         }
       }
 
@@ -80,13 +134,32 @@ export function createAttemptLimiter({
       const stored = attempts.get(key)
       const index = stored?.lastIndexOf(at) ?? -1
 
-      if (!stored || index === -1) {
+      if (stored && index !== -1) {
+        stored.splice(index, 1)
+        if (!stored.length) {
+          attempts.delete(key)
+        }
         return
       }
 
-      stored.splice(index, 1)
-      if (!stored.length) {
-        attempts.delete(key)
+      const bucket = overflowBucket(key)
+      const bucketAttempts = overflow.get(bucket)
+      let overflowIndex = -1
+      for (let index = (bucketAttempts?.length ?? 0) - 1; index >= 0; index -= 1) {
+        const attempt = bucketAttempts![index]
+        if (attempt.key === key && attempt.at === at) {
+          overflowIndex = index
+          break
+        }
+      }
+
+      if (!bucketAttempts || overflowIndex === -1) {
+        return
+      }
+
+      bucketAttempts.splice(overflowIndex, 1)
+      if (!bucketAttempts.length) {
+        overflow.delete(bucket)
       }
     },
   }

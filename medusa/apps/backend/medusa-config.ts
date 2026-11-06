@@ -45,6 +45,13 @@ if (isProduction) {
   }
 }
 
+if (isProduction && process.env.STOCK_ALERTS_ENABLED === 'true') {
+  throw new MedusaError(
+    MedusaError.Types.INVALID_DATA,
+    'STOCK_ALERTS_ENABLED must remain false until email confirmation and distributed abuse protection are enabled.'
+  )
+}
+
 requireCompleteConfig('Stripe', ['STRIPE_API_KEY', 'STRIPE_WEBHOOK_SECRET'])
 requireCompleteConfig('WhatsApp', [
   'WHATSAPP_ACCESS_TOKEN',

@@ -7,6 +7,10 @@ import { subscribeStockAlertWorkflow } from "../../../workflows/subscribe-stock-
 // Registers a one-off "tell me when it is back in stock" request. Public, so
 // it answers the same way whether or not the address already asked.
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  if (process.env.STOCK_ALERTS_ENABLED !== "true") {
+    return res.status(404).json({ message: "Fonctionnalité indisponible." })
+  }
+
   const parsed = parseStockAlertInput(req.body)
 
   if (!parsed.ok) {

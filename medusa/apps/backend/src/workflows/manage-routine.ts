@@ -6,11 +6,7 @@ import {
 } from "@medusajs/framework/workflows-sdk"
 import { MedusaError } from "@medusajs/framework/utils"
 import { emitEventStep } from "@medusajs/medusa/core-flows"
-import {
-  NormalizedRoutine,
-  normalizeRoutineInput,
-  RoutineInput,
-} from "../lib/routine"
+import { normalizeRoutineInput, RoutineInput } from "../lib/routine"
 import { ROUTINE_MODULE } from "../modules/routine"
 import type RoutineModuleService from "../modules/routine/service"
 
@@ -46,11 +42,7 @@ const createRoutineStep = createStep(
     await assertHandleFree(service, data.handle)
 
     const { steps, ...fields } = data
-    const routine = await service.createRoutines(fields)
-
-    await service.createRoutineSteps(
-      steps.map((step) => ({ ...step, routine_id: routine.id }))
-    )
+    const routine = await service.createRoutineWithSteps(fields, steps)
 
     return new StepResponse(await loadRoutine(service, routine.id), routine.id)
   },
@@ -63,22 +55,6 @@ const createRoutineStep = createStep(
     await service.deleteRoutines([routineId])
   }
 )
-
-const replaceSteps = async (
-  service: RoutineModuleService,
-  routineId: string,
-  steps: NormalizedRoutine["steps"]
-) => {
-  const current = await service.listRoutineSteps({ routine_id: routineId })
-
-  if (current.length) {
-    await service.deleteRoutineSteps(current.map((step) => step.id))
-  }
-
-  await service.createRoutineSteps(
-    steps.map((step) => ({ ...step, routine_id: routineId }))
-  )
-}
 
 const updateRoutineStep = createStep(
   "update-routine",
@@ -100,8 +76,7 @@ const updateRoutineStep = createStep(
     await assertHandleFree(service, data.handle, input.id)
 
     const { steps, ...fields } = data
-    await service.updateRoutines({ id: input.id, ...fields })
-    await replaceSteps(service, input.id, steps)
+    await service.updateRoutineWithSteps(input.id, fields, steps)
 
     return new StepResponse(await loadRoutine(service, input.id), {
       id: previous.id,
@@ -124,8 +99,7 @@ const updateRoutineStep = createStep(
     const service: RoutineModuleService = container.resolve(ROUTINE_MODULE)
     const { steps, ...fields } = previous
 
-    await service.updateRoutines(fields)
-    await replaceSteps(service, previous.id, steps)
+    await service.updateRoutineWithSteps(previous.id, fields, steps)
   }
 )
 

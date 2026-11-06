@@ -15,6 +15,9 @@ import StockAlertForm from "@modules/products/components/stock-alert-form"
 import WishlistButton from "@modules/products/components/wishlist-button"
 import { useRouter } from "next/navigation"
 
+const stockAlertsEnabled =
+  process.env.NEXT_PUBLIC_STOCK_ALERTS_ENABLED === "true"
+
 type ProductActionsProps = {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
@@ -256,7 +259,7 @@ export default function ProductActions({
             isInWishlist={isInWishlist}
           />
         </div>
-        {selectedVariant?.id && !inStock && !disabled && (
+        {stockAlertsEnabled && selectedVariant?.id && !inStock && !disabled && (
           <StockAlertForm
             key={selectedVariant.id}
             variantId={selectedVariant.id}

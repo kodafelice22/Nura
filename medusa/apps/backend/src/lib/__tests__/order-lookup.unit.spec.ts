@@ -56,14 +56,14 @@ describe("createAttemptLimiter", () => {
     expect(limiter.tryAttempt("1042", 10)).toBe(true)
   })
 
-  it("refuses new keys when full instead of evicting live ones", () => {
+  it("uses bounded overflow buckets without forgetting active keys", () => {
     const limiter = createAttemptLimiter({ max: 1, windowMs, maxKeys: 2 })
 
     limiter.tryAttempt("a", 0)
-    limiter.tryAttempt("b", 0)
-    expect(limiter.tryAttempt("c", 10)).toBe(false)
+    limiter.tryAttempt("b", 1)
+    expect(limiter.tryAttempt("c", 10)).toBe(true)
+    expect(limiter.tryAttempt("c", 11)).toBe(false)
+    expect(limiter.tryAttempt("b", 10)).toBe(false)
     expect(limiter.tryAttempt("a", 10)).toBe(false)
-    // Once the live keys expire, a sweep frees room for new ones.
-    expect(limiter.tryAttempt("c", 60_000 + windowMs)).toBe(true)
   })
 })

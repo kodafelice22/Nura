@@ -120,8 +120,8 @@ export const listProducts = async ({
 }
 
 /**
- * This will fetch 100 products to the Next.js cache and sort them based on the sortBy parameter.
- * It will then return the paginated products based on the page and limit parameters.
+ * Fetches every cached backend page before applying calculated-field filters,
+ * sorting and storefront pagination.
  */
 export const listProductsWithSort = async ({
   page = 0,
@@ -143,32 +143,52 @@ export const listProductsWithSort = async ({
   queryParams?: ProductListQueryParams
 }> => {
   const limit = queryParams?.limit || 12
+  const currentPage = Math.max(page, 1)
   const optionFilters = Array.from(
     new Set((optionValueIds || []).filter(Boolean))
   )
+  const batchSize = 100
+  const batchQuery = {
+    ...queryParams,
+    ...(optionFilters.length ? { option_value_id: optionFilters } : {}),
+    limit: batchSize,
+  }
 
-  const {
-    response: { products },
-  } = await listProducts({
-    pageParam: 0,
-    queryParams: {
-      ...queryParams,
-      ...(optionFilters.length ? { option_value_id: optionFilters } : {}),
-      limit: 100,
-    },
+  const firstBatch = await listProducts({
+    pageParam: 1,
+    queryParams: batchQuery,
     countryCode,
   })
+  const products = [...firstBatch.response.products]
+  const pageCount = Math.ceil(firstBatch.response.count / batchSize)
+
+  // These filters rely on calculated variant fields that the standard product
+  // endpoint cannot filter. Load every page so count and pagination stay exact.
+  for (let firstPage = 2; firstPage <= pageCount; firstPage += 4) {
+    const pages = Array.from(
+      { length: Math.min(4, pageCount - firstPage + 1) },
+      (_, index) => firstPage + index
+    )
+    const batches = await Promise.all(
+      pages.map((pageParam) =>
+        listProducts({ pageParam, queryParams: batchQuery, countryCode })
+      )
+    )
+
+    products.push(...batches.flatMap((batch) => batch.response.products))
+  }
 
   const filteredProducts = filterProducts(products, filters)
   const sortedProducts = sortProducts(filteredProducts, sortBy)
 
-  const pageParam = (page - 1) * limit
+  const pageOffset = (currentPage - 1) * limit
 
   const filteredCount = filteredProducts.length
 
-  const nextPage = filteredCount > pageParam + limit ? pageParam + limit : null
+  const nextPage =
+    filteredCount > pageOffset + limit ? currentPage + 1 : null
 
-  const paginatedProducts = sortedProducts.slice(pageParam, pageParam + limit)
+  const paginatedProducts = sortedProducts.slice(pageOffset, pageOffset + limit)
 
   return {
     response: {
