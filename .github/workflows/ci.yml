@@ -12,6 +12,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    working-directory: medusa
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -26,6 +30,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: medusa/package-lock.json
 
       - name: Use repository npm version
         run: npm install --global npm@11.17.0
@@ -35,6 +40,9 @@ jobs:
 
       - name: Lint deployment scripts
         run: shellcheck scripts/*.sh
+
+      - name: Test audit gate
+        run: node --test scripts/audit-gate.test.mjs
 
       - name: Audit high-risk production dependencies
         run: npm run security:audit

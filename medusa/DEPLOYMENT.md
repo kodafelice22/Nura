@@ -440,6 +440,14 @@ dans les dépendances de production. Aucune exception n'est autorisée.
 ## Supervision
 
 Les conteneurs exposent des healthchecks et limitent leurs journaux à cinq
-fichiers de 10 Mo. Configure `OTEL_EXPORTER_OTLP_ENDPOINT` pour envoyer les
-traces HTTP, workflows, requêtes, base et cache vers un collecteur compatible
-OTLP. Ajoute aussi une sonde externe sur `/health` et sur la page d'accueil.
+fichiers de 10 Mo. `OTEL_EXPORTER_OTLP_ENDPOINT` reste vide tant que la pile
+OpenTelemetry n'est pas mise à niveau (avis GHSA-qqmp-wf37-98f9 sur
+`@opentelemetry/instrumentation-pg`). Si tu l'actives malgré tout, vers un
+collecteur que tu exploites, les traces HTTP, workflows, requêtes, base et cache
+sont envoyées après masquage des identifiants de requête, des adresses IP, des
+paramètres d'URL, des valeurs et paramètres SQL, des messages d'exception et de
+statut, du nom du rôle de base et des détails du processus hôte (utilisateur
+système, ligne de commande), sur les spans, leurs événements, leurs liens et leur
+ressource (`apps/backend/src/lib/otel-redaction.ts`). Les segments du chemin
+d'URL sont conservés : ne place jamais de donnée personnelle dans un chemin de
+route. Ajoute aussi une sonde externe sur `/health` et sur la page d'accueil.

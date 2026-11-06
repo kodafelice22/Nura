@@ -1,0 +1,4 @@
+{
+  "policy": "Une exception ne neutralise qu'un avis high/critical précis (id + paquet + plage affectée), jusqu'à sa date d'expiration. Toute autre alerte, plage modifiée ou exception expirée fait échouer la CI (scripts/audit-gate.mjs). Le seuil de `npm audit --omit=dev --audit-level=high` n'est pas modifié.",
+  "exceptions": []
+}
