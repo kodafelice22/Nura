@@ -33,7 +33,9 @@ const CloseIcon = () => (
 )
 
 const buildHref = (number: string, message: string) =>
-  `https://wa.me/${number.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`
+  `https://wa.me/${number.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+    message
+  )}`
 
 const WhatsappButton = ({ phones, message }: WhatsappButtonProps) => {
   const CONTACTS: Contact[] = phones
@@ -44,27 +46,36 @@ const WhatsappButton = ({ phones, message }: WhatsappButtonProps) => {
     }))
   const text = message || DEFAULT_MESSAGE
   const [open, setOpen] = useState(false)
-  const [footerVisible, setFooterVisible] = useState(false)
+  const [covering, setCovering] = useState(false)
 
   useEffect(() => {
-    const updateFooterVisibility = () => {
-      const footer = document.querySelector("footer")
-      if (!footer) {
-        setFooterVisible(false)
-        return
-      }
-
-      const bounds = footer.getBoundingClientRect()
-      setFooterVisible(bounds.top < window.innerHeight && bounds.bottom > 0)
+    const updateCovering = () => {
+      const footer = document.querySelector("footer")?.getBoundingClientRect()
+      const overFooter =
+        !!footer && footer.top < window.innerHeight && footer.bottom > 0
+      // On mobile a block marked data-floating-clear (the home hero) ends with
+      // its calls to action, right where the button sits.
+      const overActions =
+        window.innerWidth < 900 &&
+        Array.from(document.querySelectorAll("[data-floating-clear]")).some(
+          (element) => {
+            const bounds = element.getBoundingClientRect()
+            return (
+              bounds.bottom > window.innerHeight - 96 &&
+              bounds.top < window.innerHeight
+            )
+          }
+        )
+      setCovering(overFooter || overActions)
     }
 
-    updateFooterVisibility()
-    window.addEventListener("scroll", updateFooterVisibility, { passive: true })
-    window.addEventListener("resize", updateFooterVisibility)
+    updateCovering()
+    window.addEventListener("scroll", updateCovering, { passive: true })
+    window.addEventListener("resize", updateCovering)
 
     return () => {
-      window.removeEventListener("scroll", updateFooterVisibility)
-      window.removeEventListener("resize", updateFooterVisibility)
+      window.removeEventListener("scroll", updateCovering)
+      window.removeEventListener("resize", updateCovering)
     }
   }, [])
 
@@ -72,7 +83,7 @@ const WhatsappButton = ({ phones, message }: WhatsappButtonProps) => {
     return null
   }
 
-  if (footerVisible) {
+  if (covering) {
     return null
   }
 
@@ -92,9 +103,7 @@ const WhatsappButton = ({ phones, message }: WhatsappButtonProps) => {
   }
 
   return (
-    <div
-      className="fixed bottom-6 right-5 z-40 flex flex-col items-end gap-3 transition-[bottom] xsmall:right-6 [.has-cart-bar_&]:bottom-28 [.has-product-bar_&]:bottom-32 small:[.has-cart-bar_&]:bottom-6 small:[.has-product-bar_&]:bottom-6"
-    >
+    <div className="fixed bottom-6 right-5 z-40 flex flex-col items-end gap-3 transition-[bottom] xsmall:right-6 [.has-cart-bar_&]:bottom-28 [.has-product-bar_&]:bottom-32 small:[.has-cart-bar_&]:bottom-6 small:[.has-product-bar_&]:bottom-6">
       {open && (
         <ul className="flex flex-col gap-2">
           {CONTACTS.map((contact) => (

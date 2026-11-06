@@ -4,7 +4,11 @@ import Reveal from "@modules/common/components/reveal"
 import Image from "next/image"
 
 const tiles = [
-  { src: "/images/ugc-4.webp", label: "Campagne", span: "small:col-span-2 small:row-span-2" },
+  {
+    src: "/images/ugc-4.webp",
+    label: "Campagne",
+    span: "small:col-span-2 small:row-span-2",
+  },
   { src: "/images/ugc-1.webp", label: "Rituel du matin", span: "" },
   { src: "/images/ugc-3.webp", label: "Aura Dorée", span: "" },
   { src: "/images/ugc-2.webp", label: "Gestes de soin", span: "" },
@@ -58,7 +62,7 @@ const Gallery = async ({ block }: { block?: GalleryBlock }) => {
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
-                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-bg-alt opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent px-4 py-3 text-[11px] uppercase tracking-[0.2em] text-bg-alt opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {tile.label}
                   </span>
                 </div>

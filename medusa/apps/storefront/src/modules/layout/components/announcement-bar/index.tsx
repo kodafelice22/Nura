@@ -34,7 +34,7 @@ const AnnouncementBar = ({ messages }: { messages?: string[] }) => {
       <div className="content-container flex h-9 items-center justify-center overflow-hidden">
         <p
           key={index}
-          className="animate-fade-in-top text-center text-[10px] uppercase tracking-[0.3em] small:text-[11px]"
+          className="animate-fade-in-top text-center text-[11px] uppercase leading-tight tracking-[0.12em] xsmall:tracking-[0.2em] small:tracking-[0.3em]"
           aria-live="off"
         >
           {items[index % items.length]}

@@ -24,7 +24,10 @@ const ForgotPassword = ({ messages }: { messages?: AccountMessagesBlock }) => {
           {messages?.forgot_sent_text ||
             "Si un compte existe avec cette adresse email, un lien de réinitialisation vient de vous être envoyé."}
         </p>
-        <LocalizedClientLink href="/account">
+        <LocalizedClientLink
+          href="/account"
+          className="inline-block py-2 underline"
+        >
           Retour à la connexion
         </LocalizedClientLink>
       </div>
@@ -58,12 +61,18 @@ const ForgotPassword = ({ messages }: { messages?: AccountMessagesBlock }) => {
           error={message?.state === "error" ? message.error : null}
           data-testid="forgot-password-error-message"
         />
-        <SubmitButton data-testid="request-reset-button" className="w-full mt-6">
+        <SubmitButton
+          data-testid="request-reset-button"
+          className="w-full mt-6"
+        >
           Envoyer le lien
         </SubmitButton>
       </form>
       <span className="text-center text-ui-fg-base text-small-regular mt-6">
-        <LocalizedClientLink href="/account" className="underline">
+        <LocalizedClientLink
+          href="/account"
+          className="inline-block py-2 underline"
+        >
           Retour à la connexion
         </LocalizedClientLink>
       </span>

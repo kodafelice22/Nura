@@ -22,7 +22,7 @@ const ProductInfo = async ({ product }: ProductInfoProps) => {
             </span>
           )}
           {metadata.badge && (
-            <span className="text-[10px] uppercase tracking-wide bg-brown text-bg-alt px-2 py-1 rounded-sm">
+            <span className="text-[11px] uppercase tracking-wide bg-brown text-bg-alt px-2 py-1 rounded-sm">
               {metadata.badge}
             </span>
           )}
@@ -49,7 +49,9 @@ const ProductInfo = async ({ product }: ProductInfoProps) => {
             className="flex min-h-11 items-center gap-2 self-start text-sm text-ui-fg-subtle underline-offset-4 hover:underline"
           >
             <StarRating value={Math.round(average_rating)} size="small" />
-            <span>{average_rating.toFixed(1)} / 5 · {count} avis</span>
+            <span>
+              {average_rating.toFixed(1)} / 5 · {count} avis
+            </span>
           </a>
         )}
 

@@ -47,7 +47,7 @@ const MobileItem = ({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <LocalizedClientLink
             href={`/products/${item.product_handle}`}
-            className="text-sm leading-snug text-brown"
+            className="-my-1 py-1 text-sm leading-snug text-brown"
             data-testid="product-title"
           >
             {item.product_title}
@@ -70,7 +70,10 @@ const MobileItem = ({
           )}
         </div>
 
-        <span className="flex-none text-sm text-brown" data-testid="product-price">
+        <span
+          className="flex-none text-sm text-brown"
+          data-testid="product-price"
+        >
           {convertToLocale({
             amount: item.total ?? 0,
             currency_code: currencyCode,

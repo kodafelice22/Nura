@@ -76,7 +76,7 @@ export default async function LivraisonRetoursPage() {
               <li key={contact.tel}>
                 <a
                   href={`tel:${contact.tel}`}
-                  className="text-gold hover:underline"
+                  className="inline-block py-1 text-gold hover:underline"
                 >
                   {contact.label} — {contact.display}
                 </a>

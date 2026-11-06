@@ -55,7 +55,7 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
         </span>
       </div>
       {isManual(paymentProviderId) && isDevelopment && (
-        <PaymentTest className="small:hidden text-[10px]" />
+        <PaymentTest className="small:hidden text-[11px]" />
       )}
       {children}
     </RadioGroupOption>
