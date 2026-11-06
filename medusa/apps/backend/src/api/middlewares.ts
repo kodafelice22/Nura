@@ -42,6 +42,21 @@ const authorizeOrderRead = async (
   return res.status(404).json({ message: "Order not found" })
 }
 
+// The core store order route only allows "fulfillments"; the order timeline
+// also needs the tracking number and link of each shipment.
+const allowTrackingFields = (
+  req: MedusaRequest,
+  _res: MedusaResponse,
+  next: MedusaNextFunction
+) => {
+  req.allowed = [
+    ...(req.allowed ?? []),
+    "fulfillments.labels.tracking_number",
+    "fulfillments.labels.tracking_url",
+  ]
+  next()
+}
+
 /**
  * RBAC enforcement for the admin dashboard.
  *
@@ -94,6 +109,13 @@ export default defineMiddlewares({
         }),
         authorizeOrderRead,
       ],
+    },
+    {
+      // A wildcard sorts before the core "/store/orders/:id" query
+      // validation; the same ":id" matcher would run after it, too late.
+      matcher: "/store/orders/*",
+      methods: ["GET"],
+      middlewares: [allowTrackingFields],
     },
     {
       matcher: "/admin/users*",

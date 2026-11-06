@@ -30,6 +30,9 @@ const ShippingAddress = ({
     "shipping_address.phone": cart?.shipping_address?.phone || "",
     email: cart?.email || "",
   })
+  const [whatsappOptIn, setWhatsappOptIn] = useState(
+    cart?.metadata?.whatsapp_opt_in === true
+  )
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
@@ -208,10 +211,21 @@ const ShippingAddress = ({
         <Input
           label="Téléphone"
           name="shipping_address.phone"
+          type="tel"
           autoComplete="tel"
           value={formData["shipping_address.phone"]}
           onChange={handleChange}
+          required
           data-testid="shipping-phone-input"
+        />
+      </div>
+      <div className="mb-4">
+        <Checkbox
+          label="Recevoir le suivi de ma commande sur WhatsApp"
+          name="whatsapp_opt_in"
+          checked={whatsappOptIn}
+          onChange={() => setWhatsappOptIn((optIn) => !optIn)}
+          data-testid="whatsapp-opt-in-checkbox"
         />
       </div>
     </>
