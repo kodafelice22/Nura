@@ -338,6 +338,18 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
         province: str(formData.get("billing_address.province")),
         phone: str(formData.get("billing_address.phone")),
       }
+
+    if (!str(formData.get("shipping_address.phone"))?.trim()) {
+      return "Indiquez un numéro de téléphone pour la livraison."
+    }
+
+    // Spread the existing metadata so the gift-wrap choice is kept.
+    const cart = await retrieveCart()
+    data.metadata = {
+      ...(cart?.metadata ?? {}),
+      whatsapp_opt_in: formData.get("whatsapp_opt_in") === "on",
+    }
+
     await updateCart(data)
   } catch (e) {
     return e instanceof Error ? e.message : String(e)

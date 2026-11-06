@@ -1,6 +1,11 @@
 {
   "login": {
-    "title": "Nura",
-    "hint": "Sign in to manage your Nura store."
+    "title": "Admin",
+    "hint": "Sign in to manage your store."
+  },
+  "invite": {
+    "title": "Welcome to Nura",
+    "successHint": "Your Nura admin access is ready.",
+    "successAction": "Open the admin"
   }
 }

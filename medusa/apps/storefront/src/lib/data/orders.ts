@@ -6,16 +6,62 @@ import {
   getAuthHeaders,
   getCacheOptions,
   getOrderAccessToken,
+  setOrderAccessToken,
 } from "./cookies"
 import { HttpTypes } from "@medusajs/types"
+import { redirect } from "next/navigation"
+
+export type OrderLookupState = {
+  error: string | null
+}
+
+export async function lookupOrder(
+  _currentState: OrderLookupState,
+  formData: FormData
+): Promise<OrderLookupState> {
+  let orderId: string
+
+  try {
+    const result = await sdk.client.fetch<{ order_id: string }>(
+      "/store/order-lookup",
+      {
+        method: "POST",
+        body: {
+          order_number: formData.get("order_number"),
+          email: formData.get("email"),
+        },
+      }
+    )
+    orderId = result.order_id
+  } catch (error) {
+    // 4xx answers carry a message written for the customer; anything else
+    // (network, 5xx) gets a generic one.
+    const status = (error as { status?: number }).status
+    return {
+      error:
+        status && status < 500 && error instanceof Error
+          ? error.message
+          : "La recherche n’a pas abouti. Réessayez dans quelques instants.",
+    }
+  }
+
+  await setOrderAccessToken(orderId)
+
+  // The country code comes from the form: only a market code may prefix the
+  // path, so it can never turn into an off-site redirect.
+  const countryCode = String(formData.get("country_code") ?? "").toLowerCase()
+  redirect(
+    /^[a-z]{2}$/.test(countryCode)
+      ? `/${countryCode}/order/${orderId}/confirmed`
+      : `/order/${orderId}/confirmed`
+  )
+}
 
 export const retrieveOrder = async (id: string) => {
   const orderAccessToken = await getOrderAccessToken(id)
   const headers = {
     ...(await getAuthHeaders()),
-    ...(orderAccessToken
-      ? { "x-order-access-token": orderAccessToken }
-      : {}),
+    ...(orderAccessToken ? { "x-order-access-token": orderAccessToken } : {}),
   }
 
   return sdk.client
@@ -23,7 +69,7 @@ export const retrieveOrder = async (id: string) => {
       method: "GET",
       query: {
         fields:
-          "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
+          "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product,*fulfillments,+fulfillments.labels.tracking_number,+fulfillments.labels.tracking_url",
       },
       headers,
       cache: "no-store",
@@ -60,6 +106,31 @@ export const listOrders = async (
       cache: "force-cache",
     })
     .then(({ orders }) => orders)
+    .catch((err) => medusaError(err))
+}
+
+/** The customer's order count and most recent order id, in one request. */
+export const getOrdersSummary = async () => {
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const next = {
+    ...(await getCacheOptions("orders")),
+  }
+
+  return sdk.client
+    .fetch<HttpTypes.StoreOrderListResponse>(`/store/orders`, {
+      method: "GET",
+      query: { limit: 1, order: "-created_at", fields: "id" },
+      headers,
+      next,
+      cache: "force-cache",
+    })
+    .then(({ count, orders }) => ({
+      count,
+      latestOrderId: orders[0]?.id ?? null,
+    }))
     .catch((err) => medusaError(err))
 }
 

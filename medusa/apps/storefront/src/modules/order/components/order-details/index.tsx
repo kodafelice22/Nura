@@ -1,22 +1,12 @@
 import { OrderMessagesBlock } from "@lib/data/home-content"
 import { HttpTypes } from "@medusajs/types"
 import { Text } from "@modules/common/components/ui"
+import OrderTimeline from "@modules/order/components/order-timeline"
 
 type OrderDetailsProps = {
   order: HttpTypes.StoreOrder
   showStatus?: boolean
   messages?: OrderMessagesBlock
-}
-
-const FULFILLMENT_STATUS_LABELS: Record<string, string> = {
-  not_fulfilled: "Non préparée",
-  partially_fulfilled: "Partiellement préparée",
-  fulfilled: "Préparée",
-  partially_shipped: "Partiellement expédiée",
-  shipped: "Expédiée",
-  partially_delivered: "Partiellement livrée",
-  delivered: "Livrée",
-  canceled: "Annulée",
 }
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
@@ -69,27 +59,22 @@ const OrderDetails = ({ order, showStatus, messages }: OrderDetailsProps) => {
         N° de commande : <span data-testid="order-id">{order.display_id}</span>
       </Text>
 
-      <div className="flex items-center text-compact-small gap-x-4 mt-4">
-        {showStatus && (
-          <>
-            <Text>
-              Statut de la commande :{" "}
-              <span className="text-ui-fg-subtle " data-testid="order-status">
-                {formatStatus(order.fulfillment_status, FULFILLMENT_STATUS_LABELS)}
-              </span>
-            </Text>
-            <Text>
-              Statut du paiement :{" "}
-              <span
-                className="text-ui-fg-subtle "
-                data-testid="order-payment-status"
-              >
-                {formatStatus(order.payment_status, PAYMENT_STATUS_LABELS)}
-              </span>
-            </Text>
-          </>
-        )}
-      </div>
+      {showStatus && (
+        <>
+          <div className="mt-6">
+            <OrderTimeline order={order} />
+          </div>
+          <Text className="mt-4 text-compact-small">
+            Statut du paiement :{" "}
+            <span
+              className="text-ui-fg-subtle "
+              data-testid="order-payment-status"
+            >
+              {formatStatus(order.payment_status, PAYMENT_STATUS_LABELS)}
+            </span>
+          </Text>
+        </>
+      )}
     </div>
   )
 }

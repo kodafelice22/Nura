@@ -1,36 +1,35 @@
 import { AccountMessagesBlock } from "@lib/data/home-content"
 import { login } from "@lib/data/customer"
-import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
-import { SubmitButton } from "@modules/checkout/components/submit-button"
 import EmailNotice from "@modules/common/components/email-notice"
 import Input from "@modules/common/components/input"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import { useActionState } from "react"
+import { Button } from "@modules/common/components/ui"
+import { FormEvent, startTransition, useActionState } from "react"
 
-type Props = {
-  setCurrentView: (view: LOGIN_VIEW) => void
-  messages?: AccountMessagesBlock
-}
+const Login = ({ messages }: { messages?: AccountMessagesBlock }) => {
+  const [message, dispatch, isPending] = useActionState(login, null)
 
-const Login = ({ setCurrentView, messages }: Props) => {
-  const [message, formAction] = useActionState(login, null)
+  // Dispatching from onSubmit rather than <form action> keeps the typed email
+  // after a wrong password: React 19 resets forms that use an action prop.
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+    startTransition(() => dispatch(formData))
+  }
 
   return (
-    <div
-      className="max-w-sm w-full flex flex-col items-center"
-      data-testid="login-page"
-    >
-      <h1 className="text-large-semi uppercase mb-6">
+    <div className="flex w-full flex-col" data-testid="login-page">
+      <h1 className="mb-3 font-serif text-3xl text-brown small:text-4xl">
         {messages?.login_title || "Bon retour"}
       </h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-8">
+      <p className="mb-8 text-sm text-ui-fg-subtle">
         {messages?.login_text ||
-          "Connectez-vous pour accéder à une expérience d'achat enrichie."}
+          "Connectez-vous pour suivre vos commandes et retrouver vos favoris."}
       </p>
       {message?.state === "verification_required" && (
         <div
-          className="w-full mb-6 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
+          className="mb-6 w-full border border-nude bg-bg p-4 text-sm text-brown"
           data-testid="login-verification-message"
         >
           <EmailNotice
@@ -42,8 +41,8 @@ const Login = ({ setCurrentView, messages }: Props) => {
           />
         </div>
       )}
-      <form className="w-full" action={formAction}>
-        <div className="flex flex-col w-full gap-y-2">
+      <form className="w-full" onSubmit={onSubmit}>
+        <div className="flex w-full flex-col gap-y-2">
           <Input
             label="Email"
             name="email"
@@ -62,10 +61,10 @@ const Login = ({ setCurrentView, messages }: Props) => {
             data-testid="password-input"
           />
         </div>
-        <div className="text-right mt-2">
+        <div className="mt-2 text-right">
           <LocalizedClientLink
             href="/mot-de-passe-oublie"
-            className="text-ui-fg-subtle txt-small underline hover:text-ui-fg-base"
+            className="txt-small text-ui-fg-subtle underline hover:text-ui-fg-base"
           >
             Mot de passe oublié ?
           </LocalizedClientLink>
@@ -74,21 +73,15 @@ const Login = ({ setCurrentView, messages }: Props) => {
           error={message?.state === "error" ? message.error : null}
           data-testid="login-error-message"
         />
-        <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
-          Se connecter
-        </SubmitButton>
-      </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
-        Pas encore membre ?{" "}
-        <button
-          onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
-          className="underline"
-          data-testid="register-button"
+        <Button
+          type="submit"
+          isLoading={isPending}
+          className="mt-6 w-full"
+          data-testid="sign-in-button"
         >
-          Rejoignez-nous
-        </button>
-        .
-      </span>
+          Se connecter
+        </Button>
+      </form>
     </div>
   )
 }

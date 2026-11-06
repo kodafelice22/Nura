@@ -15,18 +15,15 @@ const DEFAULT_PAYMENT_METHODS = [
 const HELP_LINKS = [
   { label: "FAQ", href: "/faq" },
   { label: "Livraison & retours", href: "/livraison-retours" },
-  { label: "Suivi de commande", href: "/account/orders" },
+  { label: "Suivi de commande", href: "/suivre-ma-commande" },
   { label: "Conditions générales", href: "/cgv" },
   { label: "Politique de confidentialité", href: "/confidentialite" },
   { label: "Mentions légales", href: "/mentions-legales" },
 ]
 
 export default async function Footer() {
-  const [productCategories, siteSettings, { blocks, hidden }] = await Promise.all([
-    listCategories(),
-    getSiteSettings(),
-    getHomeContent(),
-  ])
+  const [productCategories, siteSettings, { blocks, hidden }] =
+    await Promise.all([listCategories(), getSiteSettings(), getHomeContent()])
   const footerExtra = hidden.includes("footer_extra")
     ? null
     : blocks.footer_extra
@@ -114,12 +111,18 @@ export default async function Footer() {
                 </LocalizedClientLink>
               </li>
               <li>
-                <LocalizedClientLink href="/journal" className="hover:text-gold">
+                <LocalizedClientLink
+                  href="/journal"
+                  className="hover:text-gold"
+                >
                   Journal
                 </LocalizedClientLink>
               </li>
               <li>
-                <LocalizedClientLink href="/contact" className="hover:text-gold">
+                <LocalizedClientLink
+                  href="/contact"
+                  className="hover:text-gold"
+                >
                   Contact
                 </LocalizedClientLink>
               </li>
