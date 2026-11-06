@@ -2,6 +2,8 @@ const path = require("path")
 
 module.exports = {
   darkMode: "class",
+  // A tap applies :hover and leaves it stuck until the next tap elsewhere.
+  future: { hoverOnlyWhenSupported: true },
   presets: [require("@medusajs/ui-preset")],
   content: [
     "./src/app/**/*.{js,ts,jsx,tsx}",
@@ -69,12 +71,7 @@ module.exports = {
         "3xl": "2rem",
       },
       fontFamily: {
-        sans: [
-          "Jost",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "sans-serif",
-        ],
+        sans: ["Jost", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         serif: ["Cormorant Garamond", "Georgia", "serif"],
       },
       keyframes: {

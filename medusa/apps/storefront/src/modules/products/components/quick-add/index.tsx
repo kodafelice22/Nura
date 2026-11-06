@@ -22,7 +22,7 @@ const QuickAdd = ({ variants }: { variants: QuickAddVariant[] }) => {
 
   if (available.length === 0) {
     return (
-      <span className="block w-full bg-bg-alt/90 py-3 text-center text-[10px] uppercase tracking-[0.2em] text-ui-fg-muted">
+      <span className="block w-full bg-bg-alt/90 py-3 text-center text-[11px] uppercase tracking-[0.2em] text-ui-fg-muted">
         Épuisé
       </span>
     )
@@ -78,7 +78,7 @@ const QuickAdd = ({ variants }: { variants: QuickAddVariant[] }) => {
                   event.stopPropagation()
                   add(variant.id)
                 }}
-                className="min-h-11 w-full bg-bg-alt/95 px-2 py-3 text-[10px] uppercase tracking-[0.12em] text-brown transition-colors hover:bg-brown hover:text-bg-alt disabled:opacity-50"
+                className="min-h-11 w-full bg-bg-alt/95 px-2 py-3 text-[11px] uppercase tracking-[0.12em] text-brown transition-colors hover:bg-brown hover:text-bg-alt disabled:opacity-50"
               >
                 {pendingId === variant.id ? "…" : variant.title}
               </button>
@@ -92,17 +92,17 @@ const QuickAdd = ({ variants }: { variants: QuickAddVariant[] }) => {
         onClick={handleTrigger}
         disabled={pendingId !== null}
         className={clx(
-          "min-h-11 w-full bg-bg-alt/95 px-3 py-3 text-[10px] uppercase tracking-[0.2em] transition-colors hover:bg-brown hover:text-bg-alt disabled:opacity-60",
+          "min-h-11 w-full bg-bg-alt/95 px-3 py-3 text-[11px] uppercase tracking-[0.2em] transition-colors hover:bg-brown hover:text-bg-alt disabled:opacity-60",
           added ? "text-gold" : "text-brown"
         )}
       >
         {added
           ? "Ajouté au panier"
           : pendingId
-            ? "Ajout…"
-            : open
-              ? "Choisir une taille"
-              : "Ajout rapide"}
+          ? "Ajout…"
+          : open
+          ? "Choisir une taille"
+          : "Ajout rapide"}
       </button>
     </div>
   )

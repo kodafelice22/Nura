@@ -43,7 +43,8 @@ const MobileCheckoutBar = ({
     return () => document.body.classList.remove("has-cart-bar")
   }, [visible])
 
-  const count = cart.items?.reduce((total, item) => total + item.quantity, 0) ?? 0
+  const count =
+    cart.items?.reduce((total, item) => total + item.quantity, 0) ?? 0
   const hasUnavailableItems = hasUnavailableCartItems(cart)
 
   return (
@@ -56,7 +57,7 @@ const MobileCheckoutBar = ({
     >
       <div className="flex items-center justify-between gap-4 px-5 py-3">
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-ui-fg-muted">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-ui-fg-muted">
             {count} article{count > 1 ? "s" : ""}
           </span>
           <span className="text-lg text-brown">
@@ -68,7 +69,7 @@ const MobileCheckoutBar = ({
         </div>
         {hasUnavailableItems ? (
           <span
-            className="inline-flex h-12 flex-1 items-center justify-center bg-brown/40 px-4 text-center text-[10px] uppercase tracking-[0.16em] text-bg-alt"
+            className="inline-flex h-12 flex-1 items-center justify-center bg-brown/40 px-4 text-center text-[11px] uppercase tracking-[0.16em] text-bg-alt"
             role="status"
             data-testid="mobile-checkout-button"
           >

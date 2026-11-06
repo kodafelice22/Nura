@@ -66,7 +66,7 @@ const AccountLayout = async ({ customer, children }: AccountLayoutProps) => {
               <a
                 key={contact.tel}
                 href={`tel:${contact.tel}`}
-                className="text-gold hover:text-brown"
+                className="inline-block py-1 text-gold hover:text-brown"
               >
                 {contact.label} — {contact.display}
               </a>

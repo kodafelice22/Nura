@@ -64,7 +64,7 @@ const Login = ({ messages }: { messages?: AccountMessagesBlock }) => {
         <div className="mt-2 text-right">
           <LocalizedClientLink
             href="/mot-de-passe-oublie"
-            className="txt-small text-ui-fg-subtle underline hover:text-ui-fg-base"
+            className="inline-block py-1.5 txt-small text-ui-fg-subtle underline hover:text-ui-fg-base"
           >
             Mot de passe oublié ?
           </LocalizedClientLink>

@@ -129,7 +129,7 @@ const SideMenu = ({
               <DialogTitle className="sr-only">Menu principal</DialogTitle>
               <div
                 data-testid="nav-menu-popup"
-                className="flex h-full flex-col justify-between overflow-x-hidden overflow-y-auto p-6 pb-10"
+                className="flex h-full flex-col justify-between overflow-x-hidden overflow-y-auto overscroll-contain p-6 pb-10"
               >
                 <div className="flex flex-col gap-y-8">
                   <div className="flex justify-end" id="xmark">
@@ -149,18 +149,18 @@ const SideMenu = ({
                       <li key={category.id}>
                         <LocalizedClientLink
                           href={`/categories/${category.handle}`}
-                          className="font-serif text-3xl text-brown hover:text-gold transition-colors"
+                          className="font-serif text-3xl text-brown hover:text-gold transition-colors [@media(max-height:500px)]:text-2xl"
                           onClick={close}
                         >
                           {category.name}
                         </LocalizedClientLink>
                         {category.children.length > 0 && (
-                          <ul className="mt-2 ml-1 flex flex-col gap-y-2 border-l border-nude pl-4">
+                          <ul className="mt-2 ml-1 flex flex-col border-l border-nude pl-4">
                             {category.children.map((child) => (
                               <li key={child.id}>
                                 <LocalizedClientLink
                                   href={`/categories/${category.handle}/${child.handle}`}
-                                  className="txt-small text-ui-fg-subtle hover:text-gold"
+                                  className="inline-block py-1 txt-small text-ui-fg-subtle hover:text-gold"
                                   onClick={close}
                                 >
                                   {child.name}
@@ -174,7 +174,7 @@ const SideMenu = ({
                     <li>
                       <LocalizedClientLink
                         href="/collections"
-                        className="font-serif text-3xl text-brown hover:text-gold transition-colors"
+                        className="font-serif text-3xl text-brown hover:text-gold transition-colors [@media(max-height:500px)]:text-2xl"
                         onClick={close}
                         data-testid="collections-link"
                       >
@@ -184,7 +184,7 @@ const SideMenu = ({
                     <li>
                       <LocalizedClientLink
                         href="/store"
-                        className="font-serif text-3xl text-brown hover:text-gold transition-colors"
+                        className="font-serif text-3xl text-brown hover:text-gold transition-colors [@media(max-height:500px)]:text-2xl"
                         onClick={close}
                         data-testid="boutique-link"
                       >
@@ -193,12 +193,12 @@ const SideMenu = ({
                     </li>
                   </ul>
 
-                  <ul className="flex flex-col gap-y-3 border-t border-nude pt-6">
+                  <ul className="flex flex-col border-t border-nude pt-6">
                     {Object.entries(SECONDARY_LINKS).map(([name, href]) => (
                       <li key={name}>
                         <LocalizedClientLink
                           href={href}
-                          className="text-xs uppercase tracking-[0.2em] text-brown/70 hover:text-brown"
+                          className="inline-block py-1.5 text-xs uppercase tracking-[0.2em] text-brown/70 hover:text-brown"
                           onClick={close}
                           data-testid={`${name.toLowerCase()}-link`}
                         >
@@ -216,7 +216,7 @@ const SideMenu = ({
                       <a
                         key={contact.tel}
                         href={`tel:${contact.tel}`}
-                        className="txt-small text-ui-fg-subtle hover:text-gold"
+                        className="inline-block py-1 txt-small text-ui-fg-subtle hover:text-gold"
                       >
                         {contact.label} : {contact.display}
                       </a>
@@ -224,7 +224,7 @@ const SideMenu = ({
                     {siteSettings.email && (
                       <a
                         href={`mailto:${siteSettings.email}`}
-                        className="txt-small text-ui-fg-subtle hover:text-gold"
+                        className="inline-block py-1 txt-small text-ui-fg-subtle hover:text-gold"
                       >
                         {siteSettings.email}
                       </a>

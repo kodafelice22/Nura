@@ -30,14 +30,14 @@ const CheckoutSteps = () => {
         >
           <span
             className={clx(
-              "relative z-10 flex min-w-0 flex-col items-center gap-2 bg-bg-alt px-1 text-[9px] uppercase tracking-[0.1em] xsmall:flex-row xsmall:px-2 xsmall:text-[11px] xsmall:tracking-[0.16em]",
+              "relative z-10 flex min-w-0 flex-col items-center gap-2 bg-bg-alt px-1 text-[11px] uppercase tracking-normal xsmall:flex-row xsmall:px-2 xsmall:text-[11px] xsmall:tracking-[0.16em]",
               index <= currentIndex ? "text-brown" : "text-ui-fg-muted"
             )}
             aria-current={index === currentIndex ? "step" : undefined}
           >
             <span
               className={clx(
-                "flex h-6 w-6 items-center justify-center rounded-full border text-[10px]",
+                "flex h-6 w-6 items-center justify-center rounded-full border text-[11px]",
                 index < currentIndex && "border-gold bg-gold text-bg-alt",
                 index === currentIndex && "border-brown text-brown",
                 index > currentIndex && "border-nude text-ui-fg-muted"

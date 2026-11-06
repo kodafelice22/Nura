@@ -63,7 +63,7 @@ export default async function ProductPreview({
         </LocalizedClientLink>
 
         {badge && (
-          <span className="pointer-events-none absolute left-3 top-3 bg-bg-alt/90 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-brown">
+          <span className="pointer-events-none absolute left-3 top-3 bg-bg-alt/90 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-brown">
             {badge}
           </span>
         )}
@@ -81,7 +81,7 @@ export default async function ProductPreview({
         className="mt-4 flex flex-col items-center gap-y-1 text-center"
       >
         {productType && (
-          <span className="text-[10px] uppercase tracking-[0.2em] text-ui-fg-muted">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-ui-fg-muted">
             {productType}
           </span>
         )}

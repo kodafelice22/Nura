@@ -39,7 +39,10 @@ const Breadcrumbs = ({
           <li key={index} className="flex items-center gap-x-1">
             {index > 0 && <span aria-hidden="true">/</span>}
             {item.href && index < items.length - 1 ? (
-              <LocalizedClientLink href={item.href} className="hover:text-ink">
+              <LocalizedClientLink
+                href={item.href}
+                className="inline-block py-1 hover:text-ink"
+              >
                 {item.label}
               </LocalizedClientLink>
             ) : (

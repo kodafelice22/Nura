@@ -57,7 +57,7 @@ export default async function Footer() {
                   href={siteSettings.social.instagram}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] uppercase tracking-[0.2em] text-brown/70 hover:text-gold"
+                  className="inline-block py-2 text-[11px] uppercase tracking-[0.2em] text-brown/70 hover:text-gold"
                 >
                   Instagram
                 </a>
@@ -67,7 +67,7 @@ export default async function Footer() {
                   href={siteSettings.social.tiktok}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] uppercase tracking-[0.2em] text-brown/70 hover:text-gold"
+                  className="inline-block py-2 text-[11px] uppercase tracking-[0.2em] text-brown/70 hover:text-gold"
                 >
                   TikTok
                 </a>
@@ -77,12 +77,12 @@ export default async function Footer() {
 
           <div className="flex flex-col gap-4">
             <span className="eyebrow">Boutique</span>
-            <ul className="flex flex-col gap-y-2 text-sm text-ui-fg-subtle">
+            <ul className="flex flex-col text-sm text-ui-fg-subtle">
               {topLevel.slice(0, 4).map((category) => (
                 <li key={category.id}>
                   <LocalizedClientLink
                     href={`/categories/${category.handle}`}
-                    className="hover:text-gold"
+                    className="inline-block py-1 hover:text-gold"
                     data-testid="category-link"
                   >
                     {category.name}
@@ -92,20 +92,23 @@ export default async function Footer() {
               <li>
                 <LocalizedClientLink
                   href="/collections"
-                  className="hover:text-gold"
+                  className="inline-block py-1 hover:text-gold"
                 >
                   Collections
                 </LocalizedClientLink>
               </li>
               <li>
-                <LocalizedClientLink href="/store" className="hover:text-gold">
+                <LocalizedClientLink
+                  href="/store"
+                  className="inline-block py-1 hover:text-gold"
+                >
                   Tous les produits
                 </LocalizedClientLink>
               </li>
               <li>
                 <LocalizedClientLink
                   href="/a-propos"
-                  className="hover:text-gold"
+                  className="inline-block py-1 hover:text-gold"
                 >
                   À propos
                 </LocalizedClientLink>
@@ -113,7 +116,7 @@ export default async function Footer() {
               <li>
                 <LocalizedClientLink
                   href="/journal"
-                  className="hover:text-gold"
+                  className="inline-block py-1 hover:text-gold"
                 >
                   Journal
                 </LocalizedClientLink>
@@ -121,7 +124,7 @@ export default async function Footer() {
               <li>
                 <LocalizedClientLink
                   href="/contact"
-                  className="hover:text-gold"
+                  className="inline-block py-1 hover:text-gold"
                 >
                   Contact
                 </LocalizedClientLink>
@@ -131,12 +134,12 @@ export default async function Footer() {
 
           <div className="flex flex-col gap-4">
             <span className="eyebrow">Aide</span>
-            <ul className="flex flex-col gap-y-2 text-sm text-ui-fg-subtle">
+            <ul className="flex flex-col text-sm text-ui-fg-subtle">
               {HELP_LINKS.map((link) => (
                 <li key={link.href}>
                   <LocalizedClientLink
                     href={link.href}
-                    className="hover:text-gold"
+                    className="inline-block py-1 hover:text-gold"
                   >
                     {link.label}
                   </LocalizedClientLink>
@@ -148,10 +151,13 @@ export default async function Footer() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <span className="eyebrow">Service client</span>
-              <ul className="flex flex-col gap-y-2 text-sm text-ui-fg-subtle">
+              <ul className="flex flex-col text-sm text-ui-fg-subtle">
                 {siteSettings.phones.map((contact) => (
                   <li key={contact.tel}>
-                    <a href={`tel:${contact.tel}`} className="hover:text-gold">
+                    <a
+                      href={`tel:${contact.tel}`}
+                      className="inline-block py-1 hover:text-gold"
+                    >
                       {contact.label} — {contact.display}
                     </a>
                   </li>
@@ -160,7 +166,7 @@ export default async function Footer() {
                   <li>
                     <a
                       href={`mailto:${siteSettings.email}`}
-                      className="hover:text-gold"
+                      className="inline-block py-1 hover:text-gold"
                     >
                       {siteSettings.email}
                     </a>
@@ -191,7 +197,7 @@ export default async function Footer() {
                 ).map((method) => (
                   <li
                     key={method}
-                    className="border border-nude px-2.5 py-1 text-[10px] uppercase tracking-[0.1em]"
+                    className="border border-nude px-2.5 py-1 text-[11px] uppercase tracking-[0.1em]"
                   >
                     {method}
                   </li>
